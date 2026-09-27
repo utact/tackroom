@@ -38,3 +38,4 @@ python -m unittest discover -s tests
 | `tests/test_rules.py` | 규칙마다 차원과 값을 정하고 곱집합으로 검사한다. 훅의 목록(어미, 명사, 도구, 표기)에 사례가 없는 값이 생기면 실패한다. |
 | `tests/test_metrics.py` | 올바른 글에서의 오탐률과, 같은 문장을 어절마다 끊은 변형의 재현율을 잰다. 재현율 하한은 올리기만 한다. |
 | `tests/test_state.py` | `.git/kowrite`의 상태가 한도 안에 머물고 작업 트리에 드러나지 않는지 확인한다. |
+| `tests/test_stacks.py` | [기술 스택 조사](docs/stacks/README.md)의 모든 문서가 목록에 있고 조사 양식의 항목을 순서대로 갖췄는지 확인한다. |
