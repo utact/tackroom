@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# 이 PC에서 쓸 수 있는 Python 3.8 이상을 찾아 훅을 실행한다.
+# Windows 스토어의 python3 별칭처럼 이름만 있는 실행 파일은 버전 확인에서 걸러진다.
+for python in python3 python py; do
+  if "$python" -c 'import sys; sys.exit(sys.version_info < (3, 8))' >/dev/null 2>&1; then
+    exec "$python" "$(dirname "$0")/kowrite.py" "$@"
+  fi
+done
+exit 0
