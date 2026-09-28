@@ -1,6 +1,6 @@
 # 객체 저장소
 
-확인: 2026-09-28, Amazon S3 사용자 가이드(검색 요약)와 OWASP Cheat Sheet Series(main) 기준. S3 문서 사이트는 조사 환경에서 막혀 있었고, AWS의 공식 문서 저장소는 보관 처리되어 비어 있었다.
+확인: 2026-09-28, Amazon S3 사용자 가이드(검색 요약)와 OWASP Cheat Sheet Series(master) 기준. S3 문서 사이트는 조사 환경에서 막혀 있었고, AWS의 공식 문서 저장소는 보관 처리되어 비어 있었다.
 
 ## 요약
 

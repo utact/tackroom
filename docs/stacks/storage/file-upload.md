@@ -1,6 +1,6 @@
 # 파일 업로드
 
-확인: 2026-09-28, OWASP Cheat Sheet Series(main), tus 재개 가능 업로드 프로토콜 1.0(main), Amazon S3 사용자 가이드(검색 요약) 기준.
+확인: 2026-09-28, OWASP Cheat Sheet Series(master), tus 재개 가능 업로드 프로토콜 1.0(main), Amazon S3 사용자 가이드(검색 요약) 기준.
 
 ## 요약
 
