@@ -65,7 +65,7 @@ Airflow의 가치는 **"어느 구간의 어느 단계가 끝났는가"를 기�
 | [Spring Batch](spring-batch.md) | 한 단계 안에서 대량 항목을 나눠 처리하고 재개해야 한다. Airflow의 한 작업으로 Spring Batch Job을 부를 수 있다. |
 | Kubernetes CronJob + 간단한 스크립트 | 단계가 둘셋이고 backfill이 드물다. |
 | Dagster, Prefect | 데이터 자산 중심 모델이나 다른 개발 경험을 원한다. (미검증: 이 조사에서는 비교하지 않았다.) |
-| [Flink](../stream/flink.md) | 구간 배치가 아니라 연속 스트림으로 처리해야 한다. |
+| [Flink](../data/flink.md) | 구간 배치가 아니라 연속 스트림으로 처리해야 한다. |
 
 ## 깊이 있는 활용
 

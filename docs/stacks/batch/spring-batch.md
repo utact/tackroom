@@ -59,7 +59,7 @@ Spring Batch의 가치는 **대량 처리를 "다시 실행해도 안전한" 단
 | 반복문 + 진행 표시 컬럼 | 한 번 도는 작은 작업이다. 처리 여부 컬럼(`processed`)과 `WHERE processed = false`로도 재실행이 안전해진다. |
 | [DB 작업 큐](../async/db-job-queue.md) | 항목이 계속 들어오고, 항목마다 독립적으로 처리·재시도한다. |
 | [Airflow](airflow.md) | 여러 시스템에 걸친 단계 간 의존성과 과거 구간 재실행이 핵심이다. Spring Batch 작업을 Airflow의 한 단계로 부를 수 있다. |
-| [Flink](../stream/flink.md), Spark | 데이터가 한 노드에서 처리하기에 너무 크거나, 연속 스트림이다. |
+| [Flink](../data/flink.md), Spark | 데이터가 한 노드에서 처리하기에 너무 크거나, 연속 스트림이다. |
 
 실행 시점은 Spring Batch가 정하지 않는다.
 [Spring 스케줄러와 ShedLock](spring-scheduler-shedlock.md), [Quartz](quartz.md), Kubernetes CronJob, Airflow가 Job을 실행시킨다.
