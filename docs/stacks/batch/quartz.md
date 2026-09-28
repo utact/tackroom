@@ -24,10 +24,12 @@ JDBC 작업 저장소를 쓰면 여러 노드가 같은 DB를 공유해 한 번�
 ## 원리
 
 - **Job과 Trigger의 분리.** Job은 "무엇을", Trigger는 "언제"다. 하나의 Job에 여러 Trigger를 붙일 수 있고, Job마다 데이터(`JobDataMap`)를 가진다.
-- **작업 저장소.** 메모리 저장소(RAMJobStore)는 재시작하면 스케줄이 사라진다. JDBC 저장소(JobStoreTX 등)는 Job, Trigger, 발화 상태를 DB 테이블에 둔다. Spring Boot의 Quartz 저장소 기본값은 메모리다.
-- **클러스터링.** `org.quartz.jobStore.isClustered=true`로 여러 노드가 같은 테이블을 공유한다. 발화 시각이 되면 먼저 Trigger를 잠근 노드가 실행한다. 한 번의 발화는 한 노드만 실행한다. 클러스터링은 JDBC 저장소에서만 동작한다.
+- **작업 저장소.** 메모리 저장소(RAMJobStore)는 재시작하면 스케줄을 잃고, JDBC 저장소는 Job, Trigger, 발화 상태를 DB에 둔다. Spring Boot의 기본값은 메모리다.
+- **클러스터링.** JDBC 저장소에서 `isClustered=true`로 여러 노드가 테이블을 공유한다. 발화 때 Trigger를 먼저 잠근 노드 하나만 실행한다.
 - **장애 조치.** 노드가 실행 중에 죽으면 다른 노드가 이를 감지한다. "복구 요청(requests recovery)" 표시가 있는 Job은 남은 노드가 다시 실행하고, 없는 Job은 다음 발화 때 실행된다.
-- **misfire.** 발화 예정 시각을 `misfireThreshold`(기본 60초) 넘게 지나쳤으면 misfire로 본다. 스레드가 모두 바쁘거나 스케줄러가 꺼져 있었을 때 생긴다. Trigger 종류마다 misfire 지시(즉시 한 번 실행, 모두 무시하고 다음부터, 놓친 만큼 실행 등)를 고를 수 있고, 기본값인 smart policy는 CronTrigger에서 "지금 한 번 실행"으로 해석된다.
+- **misfire.** 발화 시각을 `misfireThreshold`(기본 60초) 넘게 지나친 경우다. 스레드가 모두 바쁘거나 스케줄러가 꺼져 있을 때 생긴다.
+  - Trigger마다 misfire 지시(즉시 한 번, 다음부터, 놓친 만큼)를 고른다.
+  - 기본값인 smart policy는 CronTrigger에서 "지금 한 번 실행"이다.
 - **동시 실행 제어.** `@DisallowConcurrentExecution`은 같은 Job 정의(JobKey)의 인스턴스가 동시에 실행되지 않게 한다. 클래스 단위가 아니라 Job 정의 단위다.
 
 ## 가치

@@ -26,8 +26,10 @@ Airflow는 여러 단계의 작업과 그 사이의 의존성을 Python 코드(D
 ## 원리
 
 - **Dag와 작업.** 작업(task)과 작업 사이의 의존성을 방향 비순환 그래프로 정의한다. 스케줄러는 의존성이 충족된 작업만 실행기(executor)로 보낸다.
-- **Dag run과 data interval.** 시간 기반 스케줄의 각 실행은 처리할 구간을 가진다. 문서는 실행이 보통 그 구간이 끝난 뒤에 예약된다고 설명한다. 1일 스케줄이면 "어제 자정~오늘 자정" 구간의 실행이 오늘 자정 이후에 돈다.
-- **catchup과 backfill.** Airflow 3에서 `catchup` 기본값은 False다(`[scheduler] catchup_by_default`). 활성화 시점 이전의 놓친 구간을 자동으로 만들지 않는다. 과거 구간은 CLI나 REST API의 backfill로 명시적으로 만든다. backfill은 이미 있는 실행을 어떻게 할지(none, failed, completed)와 동시 실행 수를 정한다.
+- **Dag run과 data interval.** 시간 기반 스케줄의 각 실행은 처리할 구간을 갖고, 그 구간이 끝난 뒤에 예약된다. 1일 스케줄이면 어제 구간의 실행이 오늘 자정 이후에 돈다.
+- **catchup과 backfill.**
+  - Airflow 3에서 `catchup` 기본값은 False라, 활성화 전의 놓친 구간을 자동으로 만들지 않는다.
+  - 과거 구간은 CLI나 REST API의 backfill로 만든다. 이미 있는 실행의 처리 방식(none, failed, completed)과 동시 실행 수를 정한다.
 - **재시도.** 작업 재시도 기본값은 0이다(`default_task_retries`). 작업마다 `retries`, `retry_delay`를 지정한다.
 - **동시성 상한.** Dag당 동시 실행 수 기본 16(`max_active_runs_per_dag`) 등 여러 층의 상한이 있다.
 - **구성 요소(Airflow 3).** 스케줄러, Dag 파일을 파싱해 DB에 직렬화하는 Dag processor, REST API와 UI를 제공하는 API 서버, 메타데이터 DB가 기본이다. 작업은 task SDK로 API 서버와 통신하며, 메타데이터 DB에 직접 접근하지 않는다.
