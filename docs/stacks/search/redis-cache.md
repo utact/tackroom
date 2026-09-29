@@ -1,6 +1,6 @@
 # Redis 캐시
 
-확인: 2026-09-27, redis/docs 저장소(Redis 8.x 문서) 기준. 캐시 일관성 기법은 Facebook의 memcache 논문(NSDI 2013)과 Vattani 외(VLDB 2015)를 근거로 한다.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-27, redis/docs 저장소(Redis 8.x 문서) 기준. 캐시 일관성 기법은 Facebook의 memcache 논문(NSDI 2013)과 Vattani 외(VLDB 2015)를 근거로 한다.
 
 ## 요약
 
@@ -29,7 +29,7 @@ Redis 캐시는 계산하거나 조회하는 데 비싼 결과를 메모리에 �
 - **만료(TTL).** 키마다 만료 시각을 둔다. 만료는 신선도의 상한일 뿐, 원본이 바뀐 즉시 반영을 보장하지 않는다.
 - **퇴출 정책.** `maxmemory`에 닿으면 `maxmemory-policy`에 따라 키를 버린다.
   - `noeviction`은 쓰기에 오류를 준다.
-  - `allkeys-lru`, `allkeys-lfu`, `allkeys-lrm`(8.x), `volatile-*`(만료가 있는 키만) 중 문서는 `allkeys-lru`를 무난한 기본으로 권한다.
+  - `allkeys-lru`, `allkeys-lfu`, `allkeys-lrm`(8.6부터, 쓰기 시각 기준), `volatile-*`(만료가 있는 키만) 중 문서는 `allkeys-lru`를 무난한 기본으로 권한다.
   - LRU는 표본을 뽑는 근사다.
 - **읽기 경로(look-aside).** 캐시를 먼저 보고, 없으면 원본을 읽어 넣는다. 채우기와 무효화는 모두 애플리케이션의 책임이다.
 - **서버 보조 클라이언트 캐싱.** Redis 6부터 `CLIENT TRACKING`으로 클라이언트가 읽은 키가 바뀌면 서버가 무효화 메시지를 보낸다. 기본 모드는 서버가 클라이언트별로 읽은 키를 기억하고, broadcasting 모드는 키 접두어를 구독한다.
@@ -69,7 +69,7 @@ Redis 캐시의 가치는 **여러 인스턴스가 공유하는, 원자적 연�
 
 - **키에 결과를 바꾸는 모든 입력을 넣는다.** 사용자나 권한 범위, 로캘, 스키마 버전, 원본 버전을 키에 넣는다. 예: `product:v3:{id}:ko`. 형식이 바뀌면 버전만 올려 옛 키를 자연 퇴출시킨다.
 - **쓰기 후에는 갱신하지 말고 지운다.** 원본을 바꾼 뒤 키를 지우고 다음 읽기가 채우게 한다. 두 쓰기의 순서가 뒤바뀌어 옛 값이 남는 경쟁이 준다(Facebook 논문의 방식).
-- **stale set은 채우기 토큰으로 막는다.** memcache 논문의 lease를 흉내 낸다. 미스 때 토큰을 받고(`SET lock:key 토큰 NX PX`), 그 사이 무효화가 토큰을 지웠으면 채우지 않는다.
+- **stale set은 채우기 토큰으로 막는다.** memcache 논문의 lease를 흉내 낸다. 미스 때 토큰을 받고(`SET lock:key 토큰 NX PX`), 그 사이 무효화가 토큰을 지웠으면 채우지 않는다. 토큰 확인과 값 쓰기는 Lua 스크립트 하나로 묶는다. 따로 하면 확인과 쓰기 사이에 다시 무효화가 끼어든다.
 - **쇄도는 한 명만 채우게 한다.** 미스 때 채우기 잠금을 얻은 요청 하나만 원본을 읽고, 나머지는 잠깐 기다렸다 다시 보거나 옛 값을 쓴다. memcache 논문은 키당 10초에 한 번만 토큰을 내줬다.
 - **만료 전에 확률적으로 미리 갱신한다.** XFetch(Vattani 외)는 만료가 가까울수록 높은 확률로 요청 하나가 미리 계산하게 해 쇄도를 흩뜨린다. TTL에 지터를 더하는 것만으로도 동시 만료를 흩뜨린다.
 - **"없음"도 캐시한다.** 존재하지 않는 키 조회가 매번 원본으로 가지 않게 짧은 TTL로 빈 결과를 저장한다. 공격성 조회를 막는다.
@@ -112,7 +112,7 @@ Redis 캐시의 가치는 **여러 인스턴스가 공유하는, 원자적 연�
 
 ## 출처
 
-- Redis, [Key eviction](https://github.com/redis/docs/blob/main/content/develop/reference/eviction/index.md): 퇴출 정책 목록, `allkeys-lru` 권장, 근사 LRU, LFU 조정값.
+- Redis, [Key eviction](https://github.com/redis/docs/blob/main/content/develop/reference/eviction/index.md): 퇴출 정책 목록, `allkeys-lru` 권장, 근사 LRU, LFU 조정값, 8.6의 LRM(2026-09-29 재검토).
 - Redis, [Client-side caching reference](https://github.com/redis/docs/blob/main/content/develop/reference/client-side-caching.md): 추적 기본 모드와 broadcasting 모드, 경쟁 조건 회피.
 - Nishtala 외, [Scaling Memcache at Facebook](https://www.usenix.org/system/files/conference/nsdi13/nsdi13-final170_update.pdf), NSDI 2013: stale set과 thundering herd, lease, 키당 10초 토큰. 이 환경에서 원문 접근이 막혀 검색 요약으로 확인했다.
 - Vattani, Chierichetti, Lowenstein, [Optimal Probabilistic Cache Stampede Prevention](http://www.vldb.org/pvldb/vol8/p886-vattani.pdf), VLDB 2015: 확률적 조기 만료(XFetch). 검색 요약으로 확인했다.

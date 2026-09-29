@@ -1,6 +1,6 @@
 # SLO와 알림
 
-확인: 2026-09-28, Google SRE Workbook "Alerting on SLOs"(검색 요약)와 Prometheus 문서(prometheus/docs, main) 기준. 오류 예산 계산은 이 문서에서 직접 했다.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-28, Google SRE Workbook "Alerting on SLOs"(검색 요약)와 Prometheus 문서(prometheus/docs, main) 기준. 오류 예산 계산은 이 문서에서 직접 했다.
 
 ## 요약
 
@@ -31,8 +31,9 @@ SLO(서비스 수준 목표)는 "30일 동안 요청의 99.9%가 성공한다"�
 - **다중 창·다중 소진율 알림.** Workbook이 권하는 방식이다.
   - 1시간에 예산 2%를 쓰는 속도(소진율 14.4)면 호출한다.
   - 6시간에 예산 5%를 쓰는 속도(소진율 6)면 호출한다.
-  - 긴 창과 짧은 창(예: 1시간과 5분)이 함께 넘을 때만 울린다. 짧은 창은 문제가 멎으면 알림을 빨리 끈다.
-- **지연 SLI는 히스토그램으로.** "300ms 안의 요청 비율"은 히스토그램 버킷 경계가 300ms에 있어야 정확하다([측정 통계](../verify/statistics.md)).
+  - 3일에 예산 10%를 쓰는 속도(소진율 1)면 티켓을 만든다.
+  - 긴 창과 짧은 창이 함께 넘을 때만 울린다. 짧은 창은 긴 창의 1/12(1시간에는 5분, 6시간에는 30분, 3일에는 6시간)이고, 문제가 멎으면 알림을 빨리 끈다.
+- **지연 SLI는 히스토그램으로.** "300ms 안의 요청 비율"은 클래식 히스토그램이면 버킷 경계가 300ms에 있어야 정확하다. native 히스토그램이면 `histogram_fraction`으로 경계 없이 구한다([Prometheus와 Grafana](prometheus-grafana.md), [측정 통계](../verify/statistics.md)).
 
 ## 가치
 
@@ -94,6 +95,6 @@ SLO 알림의 가치는 **사용자 영향과 알림을 일치시키고, 안정�
 
 ## 출처
 
-- Google SRE Workbook, [Alerting on SLOs](https://sre.google/workbook/alerting-on-slos/): 다중 창·다중 소진율 알림, 1시간 2%(소진율 14.4)와 6시간 5%(소진율 6) 권고, 긴 창과 짧은 창의 결합. 원문은 막혀 있어 검색 요약으로 확인했다.
-- Prometheus 문서, [Histograms and summaries](https://github.com/prometheus/docs/blob/main/docs/practices/histograms.md): 버킷 경계와 분위수 오차.
+- Google SRE Workbook, [Alerting on SLOs](https://sre.google/workbook/alerting-on-slos/): 다중 창·다중 소진율 알림, 1시간 2%(소진율 14.4)와 6시간 5%(소진율 6)의 호출, 3일 10%(소진율 1)의 티켓, 짧은 창은 긴 창의 1/12. 원문은 막혀 있어 검색 요약으로 확인했다.
+- Prometheus 문서, [Histograms and summaries](https://github.com/prometheus/docs/blob/main/docs/practices/histograms.md): 버킷 경계와 분위수 오차, native 히스토그램의 `histogram_fraction`.
 - 오류 예산 시간, 소진율과 예산 소모량의 관계는 직접 한 산술이다.

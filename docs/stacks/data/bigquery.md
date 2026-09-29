@@ -1,6 +1,6 @@
 # BigQuery
 
-확인: 2026-09-28, Google Cloud 문서는 조사 환경에서 막혀 있어 검색 요약으로 확인했다. 가격은 2026년 5월 기준 검색 결과다.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-28, Google Cloud 문서는 조사 환경에서 막혀 있어 검색 요약으로 확인했다. 가격은 2026년 5월 기준 검색 결과다.
 
 ## 요약
 
@@ -29,7 +29,7 @@ BigQuery는 Google Cloud의 서버리스 데이터 웨어하우스다.
 - **과금 모델.**
   - 온디맨드: 읽은 바이트로 낸다. 검색 결과 기준 TiB당 6.25달러, 매달 첫 1TiB는 무료다.
   - 용량(editions): 슬롯을 예약하고 자동 확장한다. 50슬롯 단위로 늘어난다.
-- **읽은 열이 비용이다.** 열 지향이라 필요한 열만 읽는다. `SELECT *`는 모든 열을 읽고, `LIMIT`은 읽는 양을 줄이지 않는다.
+- **읽은 열이 비용이다.** 열 지향이라 필요한 열만 읽는다. `SELECT *`는 모든 열을 읽고, 군집하지 않은 테이블에서 `LIMIT`은 읽는 양을 줄이지 않는다.
 - **분할과 군집.** 날짜 등으로 분할(partitioning)하고 자주 거르는 열로 군집(clustering)하면, 조건에 맞는 부분만 읽어 비용과 시간이 준다.
 - **청구 한도.** `maximum_bytes_billed`를 넘을 것으로 추정되면 질의가 비용 없이 실패한다. 군집 테이블은 추정이 상한이라 실제보다 크게 잡힐 수 있다.
 - **제약 조건은 강제되지 않는다.** 기본 키와 외래 키를 선언할 수 있지만 강제하지 않는다. 어긋난 데이터가 있으면 최적화된 질의가 틀린 결과를 낼 수 있다.
@@ -95,7 +95,7 @@ BigQuery의 가치는 **운영 없이 대규모 분석을 여러 사람이 공�
 ## 출처
 
 - Google Cloud, [BigQuery pricing](https://cloud.google.com/bigquery/pricing): 온디맨드 TiB당 가격과 무료 1TiB. 검색 요약으로 확인했다.
-- Google Cloud, [Estimate and control costs](https://docs.cloud.google.com/bigquery/docs/best-practices-costs): `LIMIT`이 비용을 줄이지 않음, 분할과 군집, `maximum_bytes_billed`와 군집 테이블의 추정 상한. 검색 요약으로 확인했다.
+- Google Cloud, [Estimate and control costs](https://docs.cloud.google.com/bigquery/docs/best-practices-costs): 군집하지 않은 테이블에서 `LIMIT`이 비용을 줄이지 않음, 분할과 군집, `maximum_bytes_billed`와 군집 테이블의 추정 상한. 검색 요약으로 확인했다.
 - Google Cloud, [Primary and foreign keys](https://docs.cloud.google.com/bigquery/docs/primary-foreign-keys): 강제되지 않는 제약과 틀린 결과 위험. 검색 요약으로 확인했다.
 - Google Cloud, [Storage Write API](https://docs.cloud.google.com/bigquery/docs/write-api): committed 스트림과 오프셋의 정확히 한 번. 검색 요약으로 확인했다.
 - Google Cloud, [Slots autoscaling](https://docs.cloud.google.com/bigquery/docs/slots-autoscaling-intro)과 [Quotas](https://docs.cloud.google.com/bigquery/quotas): 50슬롯 단위 확장, DML 동시 실행 제한. 검색 요약으로 확인했다.

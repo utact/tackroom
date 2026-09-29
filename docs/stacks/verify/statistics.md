@@ -26,7 +26,7 @@
 ## 원리
 
 - **지연은 분포다.** p50, p95, p99, 최대를 함께 보고, 백분위는 평균하지 않는다. 인스턴스별 분위수(summary)는 합칠 수 없고, 히스토그램을 합쳐 분위수를 다시 계산해야 한다.
-- **분위수는 추정값이다.** 히스토그램 버킷의 해상도만큼 오차가 있으므로, 목표 지연 근처에 버킷 경계를 둔다.
+- **분위수는 추정값이다.** 히스토그램 버킷의 해상도만큼 오차가 있다. 클래식 히스토그램이면 목표 지연 근처에 버킷 경계를 두고, 쓸 수 있으면 해상도가 높은 native 히스토그램을 쓴다([Prometheus와 Grafana](../ops/prometheus-grafana.md)).
 - **조정된 누락.** 요청이 느려질 때 측정도 줄어드는 부하 방식은 꼬리를 과소평가한다. HdrHistogram의 `recordValueWithExpectedInterval()`이 빠진 측정을 보정하고, [k6](k6.md)의 도착률 실행기는 부하 쪽에서 이 문제를 피한다.
 - **꼬리는 팬아웃에서 커진다.** 요청 하나가 서버 N개를 모두 기다리면 느릴 확률은 `1 − (1 − p)^N`이다. p = 1%, N = 100이면 약 63%다("The Tail at Scale").
 - **대기열은 사용률에 비선형이다.**
@@ -66,7 +66,7 @@
 
 ## 깊이 있는 활용
 
-- **목표를 백분위로 정하고 히스토그램으로 수집한다.** "p99 < 300ms"라면 250, 300, 350ms 근처에 버킷 경계를 둔다. 서비스 전체 p99는 인스턴스 히스토그램을 합친 뒤 계산한다.
+- **목표를 백분위로 정하고 히스토그램으로 수집한다.** 클래식 히스토그램으로 "p99 < 300ms"를 보려면 250, 300, 350ms 근처에 버킷 경계를 둔다. native 히스토그램은 경계를 고르지 않는다. 서비스 전체 p99는 인스턴스 히스토그램을 합친 뒤 계산한다.
 - **장애 주입 횟수를 역산한다.** "유실 확률 1% 미만"을 95%로 말하려면 무실패 약 300번(3/0.01)이 필요하고, 30번이면 10%까지만 말할 수 있다. 보고서에 횟수와 상한을 함께 쓴다.
 - **평가셋 크기를 계획한다.** 대응 비교에서 항목별 차이의 표준편차가 σ_d일 때 두 공식을 구분한다.
   - 95% 신뢰구간의 반폭을 δ로 만들려면 `n ≈ (1.96 × σ_d / δ)²`개가 필요하다.
@@ -107,7 +107,7 @@
 
 ## 출처
 
-- Prometheus, [Histograms and summaries](https://github.com/prometheus/docs/blob/main/docs/practices/histograms.md): summary 분위수는 합칠 수 없고 히스토그램은 합칠 수 있음, 분위수 추정 오차.
+- Prometheus, [Histograms and summaries](https://github.com/prometheus/docs/blob/main/docs/practices/histograms.md): summary 분위수는 합칠 수 없고 히스토그램은 합칠 수 있음, 분위수 추정 오차, native 히스토그램 우선 권고.
 - HdrHistogram, [README](https://github.com/HdrHistogram/HdrHistogram/blob/master/README.md): `recordValueWithExpectedInterval()`로 누락된 측정 보정.
 - Miller, [Adding Error Bars to Evals](https://arxiv.org/abs/2411.00640), 2024: 표준오차, 군집 표준오차, 대응 비교, 평가 크기 계획. 검색 요약으로 확인했다.
 - Dean, Barroso, [The Tail at Scale](https://cacm.acm.org/research/the-tail-at-scale/), CACM 2013: 대규모 팬아웃에서의 꼬리 지연. 이 문서의 63% 수치는 직접 계산했다.

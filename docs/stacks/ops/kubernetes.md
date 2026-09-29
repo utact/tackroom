@@ -1,6 +1,6 @@
 # Kubernetes
 
-확인: 2026-09-27, kubernetes/website 저장소(main)의 문서 기준.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-27, kubernetes/website 저장소(main)의 문서 기준.
 
 ## 요약
 
@@ -70,7 +70,8 @@ Kubernetes의 가치는 **여러 서비스·여러 인스턴스의 운영 규칙
   - liveness: 스스로 회복 못 하는 상태(교착)만 본다. 의존 시스템은 검사하지 않는다.
   - readiness: 의존 시스템과 워밍업을 포함해 지금 요청을 받아도 되는지 본다.
   - startup: 시작이 느리면 liveness를 늦춘다.
-- **종료를 두 단계로.** preStop에서 몇 초 기다려(sleep) EndpointSlice 제거가 퍼질 시간을 주고, SIGTERM을 받으면 새 요청 수신을 멈추고 처리 중인 요청을 끝낸 뒤 종료한다. `terminationGracePeriodSeconds`는 preStop 대기 + 최장 요청 처리 시간보다 길게 둔다. 컨테이너 진입점은 PID 1이 신호를 받게 만든다([Docker](docker.md)).
+- **종료를 두 단계로.** preStop에서 몇 초 기다려 EndpointSlice 제거가 퍼질 시간을 주고, SIGTERM을 받으면 새 요청 수신을 멈추고 처리 중인 요청을 끝낸 뒤 종료한다. `terminationGracePeriodSeconds`는 preStop 대기 + 최장 요청 처리 시간보다 길게 둔다. 컨테이너 진입점은 PID 1이 신호를 받게 만든다([Docker](docker.md)).
+  - 대기는 `exec`로 `sleep` 명령을 부르는 대신 `lifecycle.preStop.sleep.seconds`로 둔다. 1.34부터 안정 기능이고 kubelet이 실행하므로, 셸이 없는 distroless 이미지에서도 된다.
 - **메모리는 요청 = 제한으로.** 메모리는 압축할 수 없는 자원이라, 요청과 제한을 같게 두면 스케줄링과 OOM 동작이 예측 가능해진다. JVM은 제한에 맞춰 힙 비율을 정한다.
 - **CPU 제한은 신중히.** 지연에 민감한 서비스는 CPU 요청만 두고 제한을 두지 않거나 넉넉히 두는 방식을 검토한다. 스로틀링 지표(`container_cpu_cfs_throttled_periods_total` 등)를 보고 정한다. (미검증: 조직 정책과 노드 공유 정도에 따라 권장이 갈린다.)
 - **중단 예산을 둔다.** PodDisruptionBudget으로 노드 유지보수 중에도 최소 가용 파드 수를 지킨다.
@@ -110,6 +111,7 @@ Kubernetes의 가치는 **여러 서비스·여러 인스턴스의 운영 규칙
 ## 출처
 
 - Kubernetes 문서, [Pod Lifecycle](https://github.com/kubernetes/website/blob/main/content/en/docs/concepts/workloads/pods/pod-lifecycle.md): 기본 유예 30초, preStop, SIGTERM, EndpointSlice 제거의 동시 진행.
+- Kubernetes 문서, [Container Lifecycle Hooks](https://github.com/kubernetes/website/blob/main/content/en/docs/concepts/containers/container-lifecycle-hooks.md)와 [PodLifecycleSleepAction](https://github.com/kubernetes/website/blob/main/content/en/docs/reference/command-line-tools-reference/feature-gates/PodLifecycleSleepAction.md): kubelet이 실행하는 `sleep` 핸들러, 1.34 안정(2026-09-29 재검토).
 - Kubernetes 문서, [Configure Liveness, Readiness and Startup Probes](https://github.com/kubernetes/website/blob/main/content/en/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes.md): 세 probe, 느린 시작 보호, readiness와 liveness의 독립.
 - Kubernetes 문서, [Resource Management for Pods and Containers](https://github.com/kubernetes/website/blob/main/content/en/docs/concepts/configuration/manage-resources-containers.md): CPU 제한의 스로틀링, 메모리 제한의 OOM 종료.
 - Kubernetes 문서, [Deployments](https://github.com/kubernetes/website/blob/main/content/en/docs/concepts/workloads/controllers/deployment.md): 롤링 업데이트 기본 25%·25%.

@@ -1,6 +1,6 @@
 # Spark
 
-확인: 2026-09-28, Apache Spark v4.2.0 문서 기준.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-28, Apache Spark v4.2.0 문서 기준.
 
 ## 요약
 
@@ -52,6 +52,7 @@ Spark의 가치는 **한 대를 넘는 데이터를 SQL 수준의 추상으로, 
 - **Python UDF의 비용.** 행 단위 Python 함수는 JVM과 Python 사이의 직렬화로 느리다. 내장 함수와 SQL을 먼저 쓴다.
 - **작은 파일 문제.** 파티션마다 파일을 쓰므로, 파티션이 많으면 작은 파일이 쏟아져 다음 읽기가 느려진다.
 - **스트림의 한계.** 마이크로 배치의 지연과 상태 관리 기능은 Flink보다 제한적이다. 1ms 수준의 연속 처리 모드는 at-least-once다.
+  - 4.1에 실시간 모드(real-time mode)가 더해져, 레코드가 도착하는 대로 흘러 무상태 질의의 p99가 한 자리 밀리초까지 내려간다. 다만 처음 범위는 무상태·단일 단계 Scala 질의와 Kafka 소스·싱크 정도다. 상태가 큰 저지연 처리는 여전히 Flink 쪽이다.
 
 ## 대안과 경계
 
@@ -102,4 +103,5 @@ Spark의 가치는 **한 대를 넘는 데이터를 SQL 수준의 추상으로, 
 - Apache Spark v4.2.0, [Performance Tuning](https://github.com/apache/spark/blob/v4.2.0/docs/sql-performance-tuning.md): `spark.sql.shuffle.partitions` 기본 200, `autoBroadcastJoinThreshold` 기본 10MB, AQE 기본 켜짐(3.2.0부터), 파티션 합치기 목표 64MB, 치우친 조인 처리.
 - Apache Spark v4.2.0, [Tuning Spark](https://github.com/apache/spark/blob/v4.2.0/docs/tuning.md): 직렬화와 메모리 조정.
 - Apache Spark v4.2.0, [Structured Streaming](https://github.com/apache/spark/blob/v4.2.0/docs/streaming/index.md): 마이크로 배치 약 100ms와 정확히 한 번, 연속 처리 약 1ms와 at-least-once.
+- Apache Spark, [4.1.0 릴리스 노트](https://spark.apache.org/releases/spark-release-4-1-0.html)와 Databricks, [Introducing Real-Time Mode](https://www.databricks.com/blog/introducing-real-time-mode-apache-sparktm-structured-streaming): 실시간 모드의 지연과 초기 지원 범위. 검색 요약으로 확인했다(2026-09-29 재검토).
 - Apache Spark v4.2.0, [Structured Streaming 시작하기](https://github.com/apache/spark/blob/v4.2.0/docs/streaming/getting-started.md): 재생 가능한 소스, 체크포인트와 선행 기록 로그, 멱등한 싱크로 얻는 종단 정확히 한 번.

@@ -1,6 +1,6 @@
 # Loki와 로그 수집
 
-확인: 2026-09-28, Grafana Loki 문서(grafana/loki, main)와 OpenTelemetry 문서(main) 기준.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-28, Grafana Loki 문서(grafana/loki, main)와 OpenTelemetry 문서(main) 기준.
 
 ## 요약
 
@@ -31,7 +31,7 @@ Loki는 로그 본문을 색인하지 않고, 로그 흐름(stream)을 구분하
   - 지역, 클러스터, 앱, 환경처럼 값이 고정되고 적은 정적 라벨을 쓴다.
   - 동적 라벨은 값이 수십 개 이하로 제한될 때만 쓴다.
   - trace ID, 주문 ID 같은 값은 라벨로 만들지 않는다.
-  - 큰 테넌트도 활성 흐름 10만 개, 하루 100만 개 미만을 권한다.
+  - 하루 10TB 넘게 보내는 아주 큰 테넌트도 활성 흐름 10만 개, 하루 100만 개 미만을 권한다. 테넌트가 10배 작으면 라벨도 10배 적게 둔다. 이 수치는 상한이지 목표가 아니다.
 - **본문 필터가 생각보다 빠르다.** 문서는 `level` 라벨 대신 `|= "level=error"` 필터가 많은 경우 비슷하게 빠르다고 적는다. 라벨로 흐름을 쪼개면 청크가 늘어서다.
 - **구조화 메타데이터.** pod 이름, 사용자 ID처럼 카디널리티가 높지만 자주 거르는 값은 색인하지 않는 구조화 메타데이터로 붙인다. OpenTelemetry 형식 수집에 쓰인다.
 - **LogQL.** 라벨 선택자로 흐름을 고르고 줄 필터와 파서를 잇는다. 로그에서 메트릭을 만들어 알림도 건다.
@@ -98,7 +98,7 @@ Loki의 가치는 **로그를 싸게 오래 모으고, 메트릭·트레이스�
 ## 출처
 
 - Grafana Loki, [Overview](https://github.com/grafana/loki/blob/main/docs/sources/get-started/overview.md): 라벨만 색인, 객체 저장소의 압축 청크, 구성 요소, 배포 방식.
-- Grafana Loki, [Label best practices](https://github.com/grafana/loki/blob/main/docs/sources/get-started/labels/bp-labels.md): 정적 라벨, 동적 라벨의 제한, `level` 라벨 대신 필터, 흐름 수 권고, `--analyze-labels`.
+- Grafana Loki, [Label best practices](https://github.com/grafana/loki/blob/main/docs/sources/get-started/labels/bp-labels.md): 정적 라벨, 동적 라벨의 제한, `level` 라벨 대신 필터, 하루 10TB 규모 기준의 흐름 수 권고, `--analyze-labels`.
 - Grafana Loki, [Structured metadata](https://github.com/grafana/loki/blob/main/docs/sources/get-started/labels/structured-metadata.md): 색인하지 않는 고카디널리티 메타데이터와 사용 조건.
 - Grafana Loki, [Query best practices](https://github.com/grafana/loki/blob/main/docs/sources/query/bp-query.md): 시간 범위, 구체적인 라벨, 정규식보다 단순 필터.
 - Grafana Loki, [Request validation and rate limits](https://github.com/grafana/loki/blob/main/docs/sources/operations/request-validation-rate-limits.md): 수집 속도 제한, 줄 길이 제한, 오래된 로그 거부.

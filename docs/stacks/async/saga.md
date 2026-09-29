@@ -31,6 +31,11 @@
   - 오케스트레이션: 조정자가 각 단계를 호출하고 실패 시 보상을 지시한다. 흐름이 한곳에 보인다.
 - **격리 없음과 이상 현상.** 사가 사이에 갱신 유실, 더티 읽기, 반복 불가능 읽기가 생긴다.
 - **대응책.** 의미상 잠금(`PENDING` 상태로 표시), 교환 가능한 갱신, 비관적 순서 배치(되돌리기 어려운 단계를 뒤로), 재읽기와 낙관적 잠금이 있다.
+- **사가의 뼈대: 보상 가능, 피벗, 재시도 가능.** Richardson은 단계를 셋으로 나눈다.
+  - 보상 가능 트랜잭션: 뒤에서 실패하면 보상으로 되돌린다.
+  - 피벗 트랜잭션: 보상도 재시도도 할 수 없는, 사가의 성패를 가르는 지점이다. 이 단계가 성공하면 사가는 끝까지 간다.
+  - 재시도 가능 트랜잭션: 피벗 뒤의 단계로, 업무 규칙상 실패할 수 없어 성공할 때까지 재시도한다.
+  - 실패할 수 있는 검증을 피벗 앞으로 모으고 되돌리기 어려운 부작용을 피벗 뒤로 보내면, 보상 코드를 적게 쓴다.
 - **지속 실행 엔진.** Temporal 같은 엔진은 오케스트레이션 코드를 지속적으로 실행한다.
   - 활동(activity)은 기본 재시도 정책으로 자동 재시도한다. 초기 간격 1초, 배수 2.0이고, 최대 횟수는 기본 무제한이다.
   - 최대 간격 기본값은 초기 간격의 100배, 즉 100초다. 서버 소스의 기본 계수가 100이다. 문서 도입부의 "10분"은 이와 맞지 않으므로 소스를 따르고, 정책은 명시한다.
@@ -64,7 +69,7 @@
 ## 깊이 있는 활용
 
 - **단계마다 멱등 키.** 재시도와 중복 사건에 대비해, 사가 ID와 단계 이름으로 각 단계를 한 번만 반영한다([타임아웃·재시도·멱등 키](../api/timeout-retry-idempotency.md)).
-- **되돌리기 어려운 단계를 뒤로.** 결제 승인은 앞에서 "보류"로 하고 확정은 마지막에 한다. 외부 발송은 모든 검증 뒤에 둔다.
+- **되돌리기 어려운 단계를 뒤로.** 결제 승인은 앞에서 "보류"로 하고 확정은 마지막에 한다. 외부 발송은 모든 검증 뒤에 둔다. 단계마다 보상 가능, 피벗, 재시도 가능 중 무엇인지 표로 적어 두면 순서가 틀린 곳이 보인다.
 - **의미상 잠금으로 격리를 흉내 낸다.** 사가가 건드리는 행에 `PENDING` 상태를 두고, 다른 사가와 조회가 이 상태를 존중한다.
 - **사가 상태를 기록한다.** 오케스트레이터는 사가별 현재 단계와 보상 진행을 DB에 남겨, 장애 뒤에 이어서 진행하거나 보상한다. 지속 실행 엔진은 이것을 대신한다.
 - **끝나지 않는 사가를 찾는다.** 일정 시간 안에 끝 상태에 이르지 못한 사가를 경보로 건다.
@@ -100,4 +105,5 @@
 - Temporal 문서, [Retry Policies](https://github.com/temporalio/documentation/blob/main/docs/encyclopedia/retry-policies.mdx): 활동의 기본 자동 재시도, 초기 간격 1초, 배수 2.0, 최대 횟수 무제한, 최대 간격의 불일치 표기(100초와 10분).
 - Temporal 서버 소스, [retry_policy.go](https://github.com/temporalio/temporal/blob/main/common/retrypolicy/retry_policy.go): `MaximumIntervalCoefficient` 100, 최대 간격이 없으면 초기 간격 × 100으로 채움(2026-09-29 재검토).
 - Temporal 문서, [Workflow Definition](https://github.com/temporalio/documentation/blob/main/docs/encyclopedia/workflow/workflow-definition.mdx): 워크플로의 결정성 제약.
+- Chris Richardson, 사가 발표 자료([Managing data consistency in a microservice architecture using Sagas](https://www.slideshare.net/chris.e.richardson/saturn-2018-managing-data-consistency-in-a-microservice-architecture-using-sagas)): 보상 가능·피벗·재시도 가능 트랜잭션의 구조. 검색 요약으로 확인했다(2026-09-29 재검토).
 - Chris Richardson, [Pattern: Saga](https://microservices.io/patterns/data/saga.html): 코레오그래피와 오케스트레이션, 격리 부재와 대응책(의미상 잠금, 교환 가능한 갱신, 비관적 순서, 재읽기). 검색 요약으로 확인했다.

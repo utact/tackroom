@@ -42,7 +42,7 @@ InnoDB의 가치는 **기본 키 중심 접근의 효율과 넓은 운영 생태
 
 ## 트레이드오프와 리스크
 
-- **gap 잠금이 데드락을 만든다.** 흔한 예로, 두 트랜잭션이 없는 행을 `SELECT ... FOR UPDATE`로 확인하면 둘 다 같은 틈에 gap 잠금을 얻는다(gap 잠금끼리는 충돌하지 않는다). 그 뒤 둘 다 그 틈에 `INSERT`하려 하면 서로의 gap 잠금을 기다려 데드락이 된다. "없으면 넣기"를 잠금 읽기로 짜면 동시 요청에서 데드락이 난다. (미검증: 구체적 재현 조건은 인덱스 구조에 따라 다르다.)
+- **gap 잠금이 데드락을 만든다.** 흔한 예로, 두 트랜잭션이 없는 행을 `SELECT ... FOR UPDATE`로 확인하면 둘 다 같은 틈에 gap 잠금을 얻는다(gap 잠금끼리는 충돌하지 않는다). 그 뒤 둘 다 그 틈에 `INSERT`하려 하면 서로의 gap 잠금을 기다려 데드락이 된다. "없으면 넣기"를 잠금 읽기로 짜면 동시 요청에서 데드락이 난다. 매뉴얼의 두 규칙에서 바로 나온다. 서로 다른 트랜잭션의 gap 잠금은 공존하고, 삽입 의도 잠금은 그 틈의 다른 gap 잠금을 기다린다. 구체적인 틈의 범위는 인덱스 구조와 이웃 레코드에 따라 다르다.
 - **인덱스 없는 조건은 잠금 범위를 키운다.** 조건 컬럼에 인덱스가 없으면 훑은 행과 틈을 모두 잠근다. 작은 `UPDATE` 하나가 테이블 대부분을 막을 수 있다.
 - **스냅샷과 최신 버전의 혼재.** Repeatable Read에서 `SELECT`로 본 값과 `UPDATE`가 보는 값이 다를 수 있다. PostgreSQL은 직렬화 실패를 내지만 MySQL은 최신 버전에 그대로 적용해, 같은 코드가 다른 결과를 낸다.
 - **MDL 대기가 사실상 무한이다.** `ALTER TABLE`이 긴 트랜잭션이 쥔 메타데이터 잠금을 기다리는 동안, 뒤에 온 모든 조회가 `ALTER`를 기다린다. `lock_wait_timeout` 기본값이 1년이라 스스로 풀리지 않는다.
@@ -98,6 +98,7 @@ InnoDB의 가치는 **기본 키 중심 접근의 효율과 넓은 운영 생태
 - MySQL 소스 8.4.9, [sys_vars.cc](https://github.com/mysql/mysql-server/blob/mysql-8.4.9/sql/sys_vars.cc): `transaction_isolation` 기본값 Repeatable Read, `lock_wait_timeout` 기본값 `LONG_TIMEOUT`.
 - MySQL 소스 8.4.9, [ha_innodb.cc](https://github.com/mysql/mysql-server/blob/mysql-8.4.9/storage/innobase/handler/ha_innodb.cc): `innodb_lock_wait_timeout` 기본값 50초, `Innodb_row_lock_*` 상태 변수(데드락 수 상태 변수는 없음, 2026-09-29 재검토).
 - MySQL 8.4 Reference Manual, [Deadlocks in InnoDB](https://dev.mysql.com/doc/refman/8.4/en/innodb-deadlocks.html): `lock_deadlocks` 지표와 `innodb_print_all_deadlocks`. 검색 요약으로 확인했다.
+- MySQL 8.4 Reference Manual, [Locks Set by Different SQL Statements](https://dev.mysql.com/doc/refman/8.4/en/innodb-locks-set.html): 삽입 의도 잠금, 유일 검색 조건은 찾은 레코드만 잠금. 검색 요약으로 확인했다(2026-09-29 재검토).
 - MySQL 8.4 Reference Manual, [InnoDB Locking](https://dev.mysql.com/doc/refman/8.4/en/innodb-locking.html), [Transaction Isolation Levels](https://dev.mysql.com/doc/refman/8.4/en/innodb-transaction-isolation-levels.html), [Consistent Nonlocking Reads](https://dev.mysql.com/doc/refman/8.4/en/innodb-consistent-read.html): next-key 잠금, 일관 읽기, 갱신의 semi-consistent read. 이 환경에서는 원문 접근이 막혀 검색 요약으로 확인했다.
 - MySQL 8.4 Reference Manual, [Online DDL Operations](https://dev.mysql.com/doc/refman/8.4/en/innodb-online-ddl-operations.html): INSTANT 기본 알고리즘과 제약. 검색 요약으로 확인했다.
 - `lock_wait_timeout` 기본값 31,536,000초는 [검색 결과의 2차 자료](https://oneuptime.com/blog/post/2026-03-31-mysql-metadata-locks/view)와 소스의 `LONG_TIMEOUT`을 함께 근거로 한다.

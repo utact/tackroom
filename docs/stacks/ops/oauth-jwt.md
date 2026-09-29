@@ -1,6 +1,6 @@
 # OAuth 2.0과 JWT
 
-확인: 2026-09-27, OAuth 2.1 초안(oauth-wg/oauth-v2-1, main), Spring Security 7.1.1 문서, RFC 8725(검색 요약) 기준. OAuth 2.1 초안이 인용하는 RFC 9700(OAuth 2.0 보안 모범 사례)의 내용은 초안의 변경 목록으로 확인했다.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-27, OAuth 2.1 초안(oauth-wg/oauth-v2-1, main), Spring Security 7.1.1 문서, RFC 8725(검색 요약) 기준. OAuth 2.1 초안이 인용하는 RFC 9700(OAuth 2.0 보안 모범 사례)의 내용은 초안의 변경 목록으로 확인했다.
 
 ## 요약
 
@@ -46,7 +46,7 @@ OAuth와 JWT의 가치는 **자격 증명과 권한을 분리해, 여러 서비�
 
 - **JWT는 즉시 무효화가 어렵다.** 서명만 보고 검증하므로, 만료 전에 탈취된 토큰은 쓸 수 있다. 짧은 만료와 리프레시 토큰, 필요하면 토큰 조회(introspection)나 차단 목록이 필요하다.
 - **검증 누락이 곧 취약점이다.** `aud`를 검증하지 않으면 다른 서비스용 토큰이 우리 서비스에서 통한다. 알고리즘을 토큰 헤더에 맡기면 알고리즘 혼동 공격이 가능하다.
-- **토큰 보관 위치.** `localStorage`의 토큰은 XSS 한 번에 탈취되고, 쿠키는 CSRF 대책이 필요하다. SPA에서는 백엔드가 토큰을 들고 브라우저에는 세션 쿠키만 주는 BFF가 흔히 권장된다. (미검증: 권장 문서의 원문은 확인하지 않았다.)
+- **토큰 보관 위치.** `localStorage`의 토큰은 XSS 한 번에 탈취되고, 쿠키는 CSRF 대책이 필요하다. SPA에서는 백엔드가 토큰을 들고 브라우저에는 세션 쿠키만 주는 BFF가 권장된다. IETF의 브라우저 앱 모범 사례 초안(RFC 편집 대기)이 BFF를 가장 안전한 구조로 설명한다.
 - **토큰이 커진다.** JWT에 권한과 사용자 정보를 많이 넣으면 모든 요청 헤더가 커지고, 권한 변경이 토큰 만료까지 반영되지 않는다.
 - **인가 서버가 핵심 의존성이 된다.** 인가 서버와 서명 키 배포(JWKS)가 멈추면 새 로그인과 토큰 갱신이 멈춘다. 키 회전 절차가 필요하다.
 - **직접 구현의 위험.** 인가 서버를 직접 만들면 표준의 보안 요구를 모두 우리가 지켜야 한다.
@@ -105,4 +105,5 @@ OAuth와 JWT의 가치는 **자격 증명과 권한을 분리해, 여러 서비�
 
 - IETF OAuth WG, [The OAuth 2.1 Authorization Framework](https://github.com/oauth-wg/oauth-v2-1/blob/main/draft-ietf-oauth-v2-1.md) 초안: PKCE 기본 요구와 `plain` 제거, Implicit·Password grant 제외, 리다이렉트 URI 정확 일치, 쿼리 문자열 토큰 금지, 공개 클라이언트 리프레시 토큰의 발신자 결합이나 회전. 각 항목은 RFC 9700의 해당 절을 근거로 든다.
 - Spring Security 7.1.1, [OAuth 2.0 Resource Server JWT](https://github.com/spring-projects/spring-security/blob/7.1.1/docs/modules/ROOT/pages/servlet/oauth2/resource-server/jwt.adoc): 기본 검증(`iss`, `exp`, `nbf`), 시계 오차 60초, `audiences` 설정.
+- IETF OAuth WG, [OAuth 2.0 for Browser-Based Applications](https://datatracker.ietf.org/doc/draft-ietf-oauth-browser-based-apps/) 초안: BFF 구조, 모범 사례(BCP)로 RFC 편집 대기. 검색 요약으로 확인했다(2026-09-29 재검토). OAuth 2.1도 아직 초안(-15, 2026-03)이다.
 - [RFC 8725, JSON Web Token Best Current Practices](https://www.rfc-editor.org/rfc/rfc8725.html): 허용 알고리즘 목록, `none`과 RSA/HMAC 혼동 공격, 대상 검증, 명시적 타입. 검색 요약으로 확인했다.

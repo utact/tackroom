@@ -1,6 +1,6 @@
 # Prometheus와 Grafana
 
-확인: 2026-09-27, prometheus/docs 저장소(main)의 문서 기준.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-27, prometheus/docs 저장소(main)의 문서 기준.
 
 ## 요약
 
@@ -28,6 +28,10 @@ Grafana는 Prometheus 같은 데이터 원천을 대시보드로 보여준다.
 - **pull 모델.** Prometheus가 대상을 주기적으로 긁는다. 짧게 끝나는 작업처럼 긁을 수 없는 대상은 Pushgateway로 보내지만, 문서는 제한된 경우에만 쓰라고 권한다.
 - **시계열 = 이름 + 레이블.** 레이블 값 조합마다 시계열이 하나다. 문서는 사용자 ID, 이메일처럼 값이 무한한 차원을 레이블로 쓰지 말라고 경고한다.
 - **메트릭 종류.** 카운터(누적, `rate()`로 초당 변화율을 본다), 게이지(현재값), 히스토그램(버킷별 개수, 합칠 수 있다), 서머리(클라이언트에서 계산한 분위수, 합칠 수 없다).
+- **클래식 히스토그램과 native 히스토그램.** 문서의 가장 중요한 권고는 가능하면 native 히스토그램을 쓰고 클래식 히스토그램과 서머리보다 우선하라는 것이다.
+  - 클래식 히스토그램은 버킷 경계를 미리 정하고, 버킷마다 시계열이 하나씩 생긴다. 경계를 나중에 바꾸기 어렵다.
+  - native 히스토그램은 해상도만 정하면 지수 버킷이 동적으로 생기고, 히스토그램 하나가 시계열 하나다. 같은 비용으로 훨씬 높은 해상도를 얻는다.
+  - 계측 라이브러리 지원이 아직 드물다(protobuf 노출이 필요하고 Java, Go가 지원한다). 클래식 히스토그램을 사용자 지정 버킷 native 히스토그램(NHCB)으로 받아 저장 효율만 얻을 수도 있다.
 - **서비스 유형별 핵심 지표.** 문서는 서비스를 온라인 서빙, 오프라인 처리, 배치로 나누고, 온라인 서빙의 핵심 지표를 요청 수, 오류, 지연(그리고 처리 중 요청 수)으로 든다. 클라이언트와 서버 양쪽에서 재면 차이가 디버깅 단서가 된다.
 - **증상에 경보.** 문서의 경보 원칙은 단순하게, 증상에 경보하고, 원인을 찾을 콘솔을 두고, 할 일이 없는 호출(page)은 없애는 것이다. 지연 호출은 스택의 한 지점에서만, 오류는 사용자에게 보이는 오류에 건다.
 
@@ -44,7 +48,7 @@ Prometheus와 Grafana의 가치는 **증상에서 원인으로 가는 길을 수
 
 - **카디널리티 폭발.** 레이블 조합이 늘면 메모리와 질의 비용이 급증한다. URL 경로 전체, 사용자 ID, 요청 ID를 레이블로 넣는 것이 흔한 원인이다.
 - **장기 저장과 확장.** 단일 Prometheus는 한 노드의 저장소를 쓴다. 장기 보관과 여러 클러스터 통합에는 원격 저장(remote write)과 별도 시스템이 필요하다.
-- **분위수의 함정.** 서머리는 합칠 수 없어 서비스 전체 p99를 못 구한다. 히스토그램은 버킷 해상도만큼 오차가 있다([측정 통계](../verify/statistics.md)).
+- **분위수의 함정.** 서머리는 합칠 수 없어 서비스 전체 p99를 못 구한다. 히스토그램은 버킷 해상도만큼 오차가 있고, 클래식 히스토그램은 이 해상도를 미리 고른 경계가 정한다([측정 통계](../verify/statistics.md)).
 - **경보 피로.** 원인 기반 경보(CPU, 디스크, 개별 인스턴스)를 많이 걸면 울림이 잦아 무시된다.
 - **긁기 간격 사이의 사건.** 짧은 급증은 긁기 간격과 `rate()` 창에 따라 보이지 않을 수 있다.
 - **Pushgateway 오용.** 문서는 Pushgateway를 일반 수집에 쓰면 단일 장애점, 대상 상태 감지 상실, 지워지지 않는 시계열 같은 함정이 있다고 설명한다.
@@ -62,7 +66,7 @@ Prometheus와 Grafana의 가치는 **증상에서 원인으로 가는 길을 수
 
 - **서비스마다 요청 수·오류·지연 세 가지부터.** 엔드포인트 템플릿(경로 변수가 아니라 `/orders/{id}`)을 레이블로, 지연은 히스토그램으로 수집한다. 클라이언트 쪽(하위 호출)도 같은 방식으로 잰다.
 - **SLO를 정하고 소진율로 경보한다.** "30일간 요청의 99.9%가 300ms 안에 성공" 같은 목표를 정하고, 오류 예산이 소진되는 속도에 경보를 건다. 짧은 창과 긴 창을 함께 쓰면 급성과 만성 문제를 모두 잡고 잡음이 준다. (Google SRE Workbook의 다중 창 소진율 경보. 이 조사에서는 원문을 확인하지 않았다.)
-- **히스토그램 버킷을 목표에 맞춘다.** SLO 기준값 근처에 버킷 경계를 둔다. 인스턴스 합산은 버킷을 합친 뒤 `histogram_quantile`로 계산한다.
+- **히스토그램은 native부터 검토한다.** 라이브러리가 지원하면 native 히스토그램으로 수집하고, "300ms 안의 비율"은 `histogram_fraction(0, 0.3, sum by (job) (rate(...)))`로 구한다. 클래식 히스토그램을 쓸 수밖에 없으면 SLO 기준값 근처에 버킷 경계를 두고, 인스턴스 합산은 버킷을 합친 뒤 `histogram_quantile`로 계산한다.
 - **배치와 큐는 "마지막 성공 시각"과 heartbeat로 본다.** 문서는 마지막 처리 시각보다, 파이프라인 전체를 통과하는 가짜 항목(heartbeat)을 흘려 단계별 지연을 보는 방법을 권한다. 배치는 `마지막 성공 시각`을 게이지로 두고 "경과 시간 > 기준"에 경보한다.
 - **녹화 규칙으로 비싼 질의를 미리 계산한다.** 대시보드와 경보에 반복되는 집계를 recording rule로 만든다.
 - **대시보드는 위에서 아래로.** 첫 화면은 사용자 증상(요청 수, 오류율, p99), 그 아래 서비스별, 그 아래 자원과 하위 의존성. 경보에서 대시보드로 바로 링크한다.
@@ -101,5 +105,5 @@ Prometheus와 Grafana의 가치는 **증상에서 원인으로 가는 길을 수
 - Prometheus 문서, [Metric and label naming](https://github.com/prometheus/docs/blob/main/docs/practices/naming.md): 높은 카디널리티 레이블 금지, 기본 단위.
 - Prometheus 문서, [Instrumentation](https://github.com/prometheus/docs/blob/main/docs/practices/instrumentation.md): 서비스 유형, 온라인 서빙의 핵심 지표, 클라이언트·서버 양쪽 측정, heartbeat 항목.
 - Prometheus 문서, [Alerting](https://github.com/prometheus/docs/blob/main/docs/practices/alerting.md): 증상 경보, 할 일 없는 호출 제거, 스택 한 지점의 지연 호출.
-- Prometheus 문서, [Histograms and summaries](https://github.com/prometheus/docs/blob/main/docs/practices/histograms.md): 합산 가능성과 분위수 오차.
+- Prometheus 문서, [Histograms and summaries](https://github.com/prometheus/docs/blob/main/docs/practices/histograms.md): 합산 가능성과 분위수 오차, native 히스토그램 우선 권고, 라이브러리 지원 현황과 NHCB, `histogram_fraction`(2026-09-29 재검토).
 - Prometheus 문서, [Pushing metrics](https://github.com/prometheus/docs/blob/main/docs/practices/pushing.md): Pushgateway의 제한적 사용.

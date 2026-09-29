@@ -1,6 +1,6 @@
 # Redis Streams
 
-확인: 2026-09-27, redis/docs 저장소(Redis 8.x 문서) 기준.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-27, redis/docs 저장소(Redis 8.x 문서) 기준.
 
 ## 요약
 
@@ -68,6 +68,8 @@ Redis Streams의 가치는 **새 인프라 없이 얻는 "저장되는" 메시�
   - 8.8부터는 `XNACK`으로 항목을 되돌리며 전달 횟수 처리(`SILENT`, `FAIL`, `FATAL`)를 고른다.
   - 종료할 때 자기 보류 항목을 `SILENT`로 되돌리면 다른 소비자가 타임아웃을 기다리지 않는다.
 - **발행 중복은 멱등 ID로 막는다.** Redis 8.6부터 `XADD`에 `IDMP`(생산자 ID와 메시지 ID를 직접 지정)나 `IDMPAUTO`(내용으로 ID 계산)를 주면 재전송된 같은 메시지를 한 번만 추가한다. 이전 버전에서는 소비자 쪽 멱등 처리로 흡수한다.
+  - 중복을 기억하는 창이 짧다. 기본값은 생산자별 100초(`IDMP-DURATION`, 최대 86,400초), 100개(`IDMP-MAXSIZE`, 최대 10,000개)이고, 개수 한도가 시간보다 먼저 적용된다. 재전송이 이 창보다 늦으면 다시 추가되므로 `XCFGSET`으로 재시도 기간에 맞추고, 소비자 멱등 처리는 그대로 둔다.
+  - 생산자는 재시작 뒤에도 같은 생산자 ID를 써야 한다.
 - **트리밍은 근사치로 한다.** `MAXLEN ~ N`처럼 근사 트리밍을 쓰면 매 추가마다 정확히 자르지 않아 비용이 작다. 여러 그룹이 있으면 8.2의 `ACKED`로 모든 그룹이 확인한 항목만 자른다.
 - **순서가 필요하면 키를 나눈다.** 공식 문서의 정리대로, 엔터티 해시로 N개 스트림에 나누고 스트림마다 소비자 하나를 두면 Kafka 파티션과 같은 구조가 된다.
 - **메시지 전용 인스턴스를 둔다.** 캐시와 분리하고 `noeviction`, AOF를 켠다. 캐시 인스턴스의 퇴출과 재시작 정책이 메시지에 영향을 주지 않게 한다.
@@ -106,6 +108,6 @@ Redis Streams의 가치는 **새 인프라 없이 얻는 "저장되는" 메시�
 ## 출처
 
 - Redis, [Redis Streams](https://github.com/redis/docs/blob/main/content/develop/data-types/streams/_index.md): 소비자 그룹, PEL, `XAUTOCLAIM`, 전달 횟수와 dead letter, 8.8의 `XNACK`, 8.2의 `ACKED` 트리밍, Kafka 파티션과의 차이, 저장·복제·안전성.
-- Redis, [Idempotent message processing](https://github.com/redis/docs/blob/main/content/develop/data-types/streams/idempotency.md): 8.6의 `IDMP`, `IDMPAUTO`.
+- Redis, [Idempotent message processing](https://github.com/redis/docs/blob/main/content/develop/data-types/streams/idempotency.md): 8.6의 `IDMP`, `IDMPAUTO`, `IDMP-DURATION` 기본 100초와 `IDMP-MAXSIZE` 기본 100개, 재시작 후 같은 생산자 ID(2026-09-29 재검토).
 - Redis, [Persistence](https://github.com/redis/docs/blob/main/content/operate/oss_and_stack/management/persistence.md): `appendfsync` 정책별 유실 범위.
 - Redis, [Key eviction](https://github.com/redis/docs/blob/main/content/develop/reference/eviction/index.md): `maxmemory`와 퇴출 정책.

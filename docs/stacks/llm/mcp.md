@@ -1,6 +1,6 @@
 # MCP
 
-확인: 2026-09-28, Model Context Protocol 명세 2026-07-28 판(modelcontextprotocol/modelcontextprotocol, main) 기준.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-28, Model Context Protocol 명세 2026-07-28 판(modelcontextprotocol/modelcontextprotocol, main) 기준.
 
 ## 요약
 
@@ -31,7 +31,9 @@ MCP(Model Context Protocol)는 LLM 애플리케이션(클라이언트)이 외부
 - **2026-07-28 판의 주요 변화.** 프로토콜이 상태 없이 바뀌었다.
   - 세션과 `Mcp-Session-Id`, 초기화 핸드셰이크가 없어지고, 요청마다 버전과 능력을 싣는다. 대신 `server/discover`로 능력을 알린다.
   - 스트림 재개와 재전달이 없어져, 끊기면 요청을 새 ID로 다시 보내야 한다.
-  - 목록 결과에 캐시 수명(`ttlMs`)이 붙고, 도구 목록은 결정적 순서로 반환하라고 권한다. 클라이언트 캐시와 LLM 프롬프트 캐시 적중을 위해서다.
+  - 목록 결과에 캐시 수명(`ttlMs`)과 공유 캐시 허용 범위(`cacheScope`)가 붙고, 도구 목록은 결정적 순서로 반환하라고 권한다. 클라이언트 캐시와 LLM 프롬프트 캐시 적중을 위해서다.
+  - 서버가 먼저 보내던 요청(`sampling/createMessage`, `elicitation/create`, `roots/list`)은 다중 왕복 요청(MRTR)으로 바뀌었다. 서버가 `input_required` 결과로 필요한 정보를 알리면, 클라이언트가 답을 실어 원래 요청을 다시 보낸다. 사람 확인도 이 흐름을 탄다.
+  - 오래 걸리는 작업(tasks)은 핵심 명세에서 공식 확장으로 빠졌고, Roots·Sampling·Logging은 폐기 예정이다. 새 구현은 이 기능에 기대지 않는다.
 - **사람 승인.** 명세는 안전을 위해 도구 호출을 거부할 수 있는 사람이 항상 개입해야 한다고 권한다. 도구 설명(annotations)은 신뢰하는 서버가 아니면 믿지 말라고 한다.
 - **인가.** 원격 서버는 OAuth 기반 인가를 쓴다.
   - 서버는 토큰이 자기를 대상(audience)으로 발급됐는지 검증해야 한다.
@@ -99,7 +101,7 @@ MCP의 가치는 **도구 통합을 한 번 만들어 여러 에이전트에서 
 
 ## 출처
 
-- MCP, [Key Changes 2026-07-28](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/docs/specification/2026-07-28/changelog.mdx): 세션과 초기화 제거, `server/discover`, 스트림 재개 제거, `ttlMs`, 결정적 도구 순서, `_meta`의 트레이스 문맥.
+- MCP, [Key Changes 2026-07-28](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/docs/specification/2026-07-28/changelog.mdx): 세션과 초기화 제거, `server/discover`, 스트림 재개 제거, `ttlMs`와 `cacheScope`, 결정적 도구 순서, `_meta`의 트레이스 문맥, MRTR, tasks 확장 분리, Roots·Sampling·Logging 폐기 예정(2026-09-29 재검토).
 - MCP, [Tools](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/docs/specification/2026-07-28/server/tools.mdx): 사람 개입 권고, 도구 설명의 불신, 이름 규칙.
 - MCP, [stdio](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/docs/specification/2026-07-28/basic/transports/stdio.mdx): 하위 프로세스, 줄 단위 메시지, `stdout` 규칙.
 - MCP, [Authorization](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/docs/specification/2026-07-28/basic/authorization/index.mdx)과 [Security Considerations](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/docs/specification/2026-07-28/basic/authorization/security-considerations.mdx): 대상 검증, 토큰 전달 금지, 혼동된 대리인.

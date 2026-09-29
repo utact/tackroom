@@ -1,6 +1,6 @@
 # 파일 업로드
 
-확인: 2026-09-28, OWASP Cheat Sheet Series(master), tus 재개 가능 업로드 프로토콜 1.0(main), Amazon S3 사용자 가이드(검색 요약) 기준.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-28, OWASP Cheat Sheet Series(master), tus 재개 가능 업로드 프로토콜 1.0(main), Amazon S3 사용자 가이드(검색 요약) 기준.
 
 ## 요약
 
@@ -63,7 +63,7 @@
 | 서버 경유 업로드 | 파일이 작고(수 MB 이하), 받는 즉시 동기적으로 검사해야 한다. |
 | 사전 서명 단일 PUT | 파일이 수십~수백 MB이고 재개가 필요 없다. |
 | 멀티파트 직접 업로드 | 파일이 크고 병렬 전송과 파트 단위 재시도가 필요하다. |
-| tus | 저장소와 무관한 표준 재개 프로토콜과 기존 클라이언트 라이브러리를 원한다. |
+| tus | 저장소와 무관한 표준 재개 프로토콜과 기존 클라이언트 라이브러리를 원한다. tus 팀이 참여한 IETF 초안(Resumable Uploads for HTTP)이 표준화 중이라, 새로 만든다면 그 진행을 함께 본다. |
 | 관리형 업로드 서비스 | 변환과 검사까지 맡기고 싶다. |
 
 ## 깊이 있는 활용
@@ -110,4 +110,5 @@
 - OWASP, [File Upload Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/File_Upload_Cheat_Sheet.md): `Content-Type` 위조, 시그니처 확인의 한계, 무작위 파일명과 파일명 제한, 이미지 재작성, 압축 파일 비권장, 웹 루트 밖이나 다른 호스트 저장, `.htaccess`와 `web.config` 위험, 크기 제한, 인증과 권한.
 - tus, [Resumable Upload Protocol 1.0](https://github.com/tus/tus-resumable-upload-protocol/blob/main/protocol.md): `HEAD`와 `Upload-Offset`, `PATCH`로 이어 보내기, `Upload-Length`, `Tus-Resumable`, `Tus-Max-Size`.
 - Amazon S3 사용자 가이드, [Multipart upload limits](https://docs.aws.amazon.com/AmazonS3/latest/userguide/qfacts.html): 파트 크기와 수. 검색 요약으로 확인했다.
-- `content-length-range` 조건은 S3의 브라우저 POST 정책 기능이다. (미검증: 원문을 읽지 못했다.)
+- Amazon S3 API Reference, [POST Policy](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-HTTPPOSTConstructPolicy.html): `content-length-range` 조건으로 업로드 크기의 최소·최대를 정함. 검색 요약으로 확인했다(2026-09-29 재검토).
+- IETF HTTP WG, [Resumable Uploads for HTTP](https://datatracker.ietf.org/doc/draft-ietf-httpbis-resumable-upload/) 초안: 표준화 중인 재개 업로드(104 응답, `Upload-Complete`). 검색 요약으로 확인했다(2026-09-29 재검토).

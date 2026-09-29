@@ -1,6 +1,6 @@
 # PostgreSQL
 
-확인: 2026-09-27, PostgreSQL 문서 소스(master 브랜치) 기준. 최신 안정판은 18.6이고, 여기서 다루는 기능은 모두 18에 있다.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-27, PostgreSQL 문서 소스(master 브랜치) 기준. 최신 안정판은 18.6이고, 여기서 다루는 기능은 모두 18에 있다.
 
 ## 요약
 
@@ -74,7 +74,7 @@ PostgreSQL의 가치는 **규칙을 데이터 옆에 두고, 동시성의 정답
 - **느린 쿼리는 통계로 찾는다.** `pg_stat_statements`로 총 시간 기준 상위 쿼리를 찾고, `EXPLAIN (ANALYZE, BUFFERS)`로 추정 행 수와 실제 행 수가 크게 어긋나는 노드를 본다. 어긋나면 인덱스보다 통계(`ANALYZE`, 확장 통계)가 먼저다.
 - **무중단 스키마 변경 기법을 쓴다.** 절차는 [Flyway와 무중단 스키마 변경](schema-migration.md)에 있다.
   - 인덱스는 `CREATE INDEX CONCURRENTLY`로 만들고, 실패로 남은 INVALID 인덱스는 지운다.
-  - 제약은 `NOT VALID`로 걸고 `VALIDATE CONSTRAINT`로 나중에 검사한다.
+  - 제약은 `NOT VALID`로 걸고 `VALIDATE CONSTRAINT`로 나중에 검사한다. 18부터는 NOT NULL 제약도 `NOT VALID`로 걸 수 있다.
   - 변경 세션에는 `lock_timeout`을 짧게 건다.
 - **타임아웃을 DB에도 건다.** `statement_timeout`, `lock_timeout`, `idle_in_transaction_session_timeout`을 역할별로 건다. 트랜잭션을 연 채 멈춘 애플리케이션이 VACUUM과 잠금을 막는 것을 방지한다.
 
@@ -114,7 +114,7 @@ PostgreSQL의 가치는 **규칙을 데이터 옆에 두고, 동시성의 정답
 
 - PostgreSQL, [Concurrency Control](https://github.com/postgres/postgres/blob/master/doc/src/sgml/mvcc.sgml): 격리 수준 표, Read Committed의 갱신 재평가, `ON CONFLICT` 동작, Serializable의 직렬화 실패와 재시도.
 - PostgreSQL, [CREATE INDEX](https://github.com/postgres/postgres/blob/master/doc/src/sgml/ref/create_index.sgml): 동시 인덱스 생성과 실패 시 INVALID 인덱스.
-- PostgreSQL, [ALTER TABLE](https://github.com/postgres/postgres/blob/master/doc/src/sgml/ref/alter_table.sgml): `NOT VALID`, 비휘발성 기본값의 컬럼 추가, 테이블 재작성은 MVCC 안전하지 않음.
+- PostgreSQL, [ALTER TABLE](https://github.com/postgres/postgres/blob/master/doc/src/sgml/ref/alter_table.sgml): `NOT VALID`(18부터 NOT NULL 포함, 2026-09-29 재검토), 비휘발성 기본값의 컬럼 추가, 테이블 재작성은 MVCC 안전하지 않음.
 - PostgreSQL, [Server Configuration](https://github.com/postgres/postgres/blob/master/doc/src/sgml/config.sgml): `lock_timeout`.
 - PostgreSQL, [Routine Vacuuming](https://github.com/postgres/postgres/blob/master/doc/src/sgml/maintenance.sgml): 옛 행 버전과 공간 회수.
 - PostgreSQL, [UUID Functions](https://github.com/postgres/postgres/blob/master/doc/src/sgml/func/func-uuid.sgml): `uuidv7()`. 18에서 추가([18.0 릴리스 노트](https://www.postgresql.org/docs/release/18.0/)).

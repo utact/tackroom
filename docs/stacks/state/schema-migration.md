@@ -1,6 +1,6 @@
 # Flyway와 무중단 스키마 변경
 
-확인: 2026-09-27, Flyway 12.9 문서와 소스(flyway 저장소), PostgreSQL 문서(master 브랜치) 기준.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-27, Flyway 12.9 문서와 소스(flyway 저장소), PostgreSQL 문서(master 브랜치) 기준.
 
 ## 요약
 
@@ -64,7 +64,7 @@ expand/contract의 가치는 **배포와 스키마 변경을 분리하는 것**�
   - 파일 옆 `V5__idx.sql.conf`에 `executeInTransaction=false`를 두어 그 파일만 트랜잭션 밖에서 실행한다.
   - Flyway 잠금은 `postgresql.transactional.lock=false`로 세션 수준으로 바꾼다.
   - 실패하면 INVALID 인덱스를 지우고 다시 만든다.
-- **제약은 두 단계로 건다.** `NOT VALID`로 새 쓰기부터 검사하고, 다음 마이그레이션의 `VALIDATE CONSTRAINT`가 쓰기를 막지 않는 약한 잠금으로 기존 행을 검사한다. `NOT NULL`은 `CHECK (col IS NOT NULL) NOT VALID` → 검증 → `SET NOT NULL` 순서면 테이블 스캔을 건너뛴다.
+- **제약은 두 단계로 건다.** `NOT VALID`로 새 쓰기부터 검사하고, 다음 마이그레이션의 `VALIDATE CONSTRAINT`가 쓰기를 막지 않는 약한 잠금으로 기존 행을 검사한다. `NOT NULL`은 PostgreSQL 18부터 `ADD CONSTRAINT 이름 NOT NULL col NOT VALID` → `VALIDATE CONSTRAINT`로 바로 건다. 17 이하에서는 `CHECK (col IS NOT NULL) NOT VALID` → 검증 → `SET NOT NULL` 순서면 테이블 스캔을 건너뛴다.
 - **모든 DDL 앞에 `SET lock_timeout`을 둔다.** 잠금을 몇 초 안에 못 얻으면 실패하고 재시도해, 대기열로 서비스를 멈추지 않는다. MySQL은 `lock_wait_timeout`이다.
 - **적용과 배포를 분리한다.** 애플리케이션 시작 시 자동 적용 대신 배포 파이프라인의 별도 단계에서 `flyway migrate`를 실행한다. 적용 결과를 확인한 뒤 새 코드를 배포한다.
 - **CI에서 빈 DB와 운영 사본 모두에 적용해 본다.** 빈 DB에 처음부터 적용하는 시험은 파일 순서와 문법을, 운영 스냅샷 사본에 적용하는 시험은 실행 시간과 잠금을 잡는다.
@@ -104,3 +104,4 @@ expand/contract의 가치는 **배포와 스키마 변경을 분리하는 것**�
 - Flyway 문서, [PostgreSQL Transactional Lock](https://github.com/flyway/flyway/blob/main/documentation/Reference/Configuration/Flyway%20Namespace/Flyway%20PostgreSQL%20Namespace/Flyway%20PostgreSQL%20Transactional%20Lock%20Setting.md): `CREATE INDEX CONCURRENTLY`에는 false로.
 - Flyway 문서, [Script Configuration](https://github.com/flyway/flyway/blob/main/documentation/Reference/Script%20Configuration.md), [Undo](https://github.com/flyway/flyway/blob/main/documentation/Reference/Commands/Undo.md): 파일별 설정, Undo는 Teams 등급.
 - PostgreSQL, [ALTER TABLE](https://github.com/postgres/postgres/blob/master/doc/src/sgml/ref/alter_table.sgml), [CREATE INDEX](https://github.com/postgres/postgres/blob/master/doc/src/sgml/ref/create_index.sgml): `NOT VALID`와 `SET NOT NULL`의 스캔 생략, 동시 인덱스 생성.
+- PostgreSQL, [18 릴리스 노트](https://github.com/postgres/postgres/blob/REL_18_STABLE/doc/src/sgml/release-18.sgml): NOT NULL 제약을 `NOT VALID`로 추가(2026-09-29 재검토).

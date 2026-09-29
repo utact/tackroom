@@ -1,6 +1,6 @@
 # vLLM
 
-확인: 2026-09-27, vLLM v0.30.0 문서와 소스(`vllm/config/cache.py`) 기준.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-27, vLLM v0.30.0 문서와 소스(`vllm/config/cache.py`) 기준.
 
 ## 요약
 
@@ -45,7 +45,8 @@ vLLM의 가치는 **같은 GPU로 더 많은 동시 요청을, 예측 가능한 
 - **GPU 운영이 새 일이다.** GPU 확보, 드라이버와 CUDA 버전, 모델 가중치 배포, 장애 대응, 자동 확장이 모두 우리 몫이다. 트래픽이 적으면 GPU가 대부분 논다.
 - **총비용 비교가 까다롭다.** 외부 API는 토큰당, 자체 서빙은 GPU 시간당 비용이라 사용률이 낮으면 자체 서빙이 비싸다. 품질이 같은 모델인지도 따로 확인한다.
 - **긴 문맥은 메모리를 먹는다.** `max_model_len`을 크게 잡으면 동시 요청 수가 준다. 선점이 잦아지면 지연 꼬리가 길어진다.
-- **결과가 재현되지 않는다.** 배치 구성에 따라 출력이 달라질 수 있다. 평가와 회귀 시험에서 이 흔들림을 감안해야 한다.
+- **결과가 재현되지 않는다.** 기본 설정에서는 배치 구성에 따라 출력이 달라질 수 있다. 평가와 회귀 시험에서 이 흔들림을 감안해야 한다.
+  - 재현성이 필요하면 batch invariance 모드(`VLLM_BATCH_INVARIANT=1`, 베타)를 켠다. 배치 크기와 순서에 상관없이 같은 출력을 내지만, 비결정적 최적화를 꺼서 성능이 떨어지고 지원 하드웨어가 제한된다(NVIDIA 연산 능력 8.0 이상 등).
 - **버전 변화가 빠르다.** 기본값(메모리 비율, 캐시 동작)과 설정 이름이 버전마다 바뀐다. 버전을 고정하고 올릴 때 다시 잰다.
 - **prefix cache는 격리 설계가 필요하다.** vLLM 문서는 멀티테넌트 환경에서 캐시를 격리하는 수단으로 cache salt를 둔다. 공유 캐시의 적중 여부가 응답 시간에 드러나 다른 고객의 접두어를 추측할 여지가 있다는 점이 격리의 이유로 흔히 거론된다(미검증).
 
@@ -79,7 +80,7 @@ vLLM의 가치는 **같은 GPU로 더 많은 동시 요청을, 예측 가능한 
 
 - **선점.** `max_model_len`을 크게, 메모리 비율을 낮게 두고 긴 요청을 동시에 보내 선점 경고와 지연 꼬리를 만든다.
 - **캐시 적중과 파괴.** 공통 접두어가 긴 요청을 반복해 TTFT를 재고, 접두어 맨 앞에 요청마다 다른 값을 넣어 적중이 사라지는 것을 본다.
-- **비결정성.** 같은 요청을 단독으로, 그리고 다른 요청들과 동시에 보내 출력이 달라지는지 본다.
+- **비결정성.** 같은 요청을 단독으로, 그리고 다른 요청들과 동시에 보내 출력이 달라지는지 본다. batch invariance 모드를 켜고 반복해 차이가 사라지는지와 처리량 손실을 잰다.
 - **부하 급증.** 요청률을 갑자기 올려 대기열과 TTFT가 어떻게 늘어나는지 본다.
 
 ## 측정과 검증
@@ -102,5 +103,6 @@ vLLM의 가치는 **같은 GPU로 더 많은 동시 요청을, 예측 가능한 
 - vLLM v0.30.0, [Automatic Prefix Caching](https://github.com/vllm-project/vllm/blob/v0.30.0/docs/design/prefix_caching.md): 해시 기반 블록 식별, LoRA·멀티모달·cache salt.
 - vLLM v0.30.0, [Optimization and Tuning](https://github.com/vllm-project/vllm/blob/v0.30.0/docs/configuration/optimization.md): 최적화 단계, 시작 시간 단축, 선점과 대처, V1의 RECOMPUTE 기본값.
 - vLLM v0.30.0, [FAQ](https://github.com/vllm-project/vllm/blob/v0.30.0/docs/usage/faq.md): 배치에 따른 출력·로그 확률 변동.
+- vLLM v0.30.0, [Batch Invariance](https://github.com/vllm-project/vllm/blob/v0.30.0/docs/features/batch_invariance.md): 베타, `VLLM_BATCH_INVARIANT`, 하드웨어 요구, 성능 대가(2026-09-29 재검토).
 - vLLM v0.30.0, [Benchmark CLI](https://github.com/vllm-project/vllm/blob/v0.30.0/docs/benchmarking/cli.md): TTFT·ITL·TPOT 정의, `--request-rate`, `--burstiness`, `--max-concurrency`.
 - vLLM v0.30.0, [Paged Attention](https://github.com/vllm-project/vllm/blob/v0.30.0/docs/design/paged_attention.md): 원 논문 기반의 역사 문서라는 표시. 원 논문은 [Kwon 외, SOSP 2023](https://arxiv.org/abs/2309.06180).
