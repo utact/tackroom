@@ -1,6 +1,6 @@
 # Spring Batch
 
-확인: 2026-09-27, Spring Batch 6.0.5 문서(spring-batch-docs) 기준.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-27, Spring Batch 6.0.5 문서(spring-batch-docs) 기준.
 
 ## 요약
 
@@ -31,6 +31,7 @@ Spring Batch는 대량의 항목을 읽고, 가공하고, 쓰는 일을 청크 �
 - **상태 저장.** 기본 reader와 writer는 쓰기와 같은 트랜잭션에서 현재 위치를 `ExecutionContext`에 저장하고, 재시작하면 그 위치부터 읽는다.
 - **건너뛰기와 재시도.** 결정적인 예외(파싱 실패)는 건너뛰기 한도 안에서 건너뛰고, 일시적 예외(데드락)는 재시도한다. 문서는 둘을 이렇게 구분하라고 설명한다.
 - **메타데이터 저장소.** 실행 기록과 `ExecutionContext`를 저장한다. 6.0부터 기본 저장소는 아무것도 남기지 않는 resourceless이고, JDBC 저장소는 `@EnableJdbcJobRepository`로 켠다.
+  - Spring Boot 4도 같은 방향이다. `spring-boot-starter-batch`는 resourceless만 구성하고, JDBC 저장소와 메타데이터 스키마 초기화는 `spring-boot-starter-batch-jdbc`로 옮겨 갔다. Boot 3에서 올리면서 의존성을 바꾸지 않으면 저장소가 조용히 resourceless가 된다.
 - **동시성.** 6.0의 동시 청크 처리는 제한된 큐를 둔 생산자-소비자 모델이다. 멀티스레드 step의 processor는 스레드 안전해야 한다.
 
 ## 가치
@@ -66,7 +67,7 @@ Spring Batch의 가치는 **대량 처리를 "다시 실행해도 안전한" 단
 
 ## 깊이 있는 활용
 
-- **JDBC 저장소를 명시적으로 켠다.** 운영 배치는 `@EnableJdbcJobRepository`와 메타데이터 스키마를 둔다. 스키마는 [Flyway](../state/schema-migration.md)로 관리한다.
+- **JDBC 저장소를 명시적으로 켠다.** 운영 배치는 JDBC 저장소와 메타데이터 스키마를 둔다. Spring Boot 4라면 `spring-boot-starter-batch-jdbc`를, Boot 없이 쓰면 `@EnableJdbcJobRepository`를 쓴다. 스키마는 [Flyway](../state/schema-migration.md)로 관리한다.
 - **식별 파라미터를 업무 단위로 정한다.** 처리 기준일을 식별 파라미터로 두면 같은 날짜는 한 번만 성공하고, 두 번째 실행은 거부된다. 실행 시각 같은 값은 식별하지 않는다.
 - **keyset 페이징과 유일 정렬 키를 쓴다.** 기본 키처럼 유일하고 변하지 않는 키로 정렬한다. 오프셋이 아니라 "마지막으로 읽은 키 이후"로 읽으면 데이터 변경에 덜 흔들린다.
 - **처리 표시 패턴으로 재실행을 쉽게 한다.** 원본의 처리 여부 컬럼을 읽기 조건에 넣고 `saveState(false)`로 위치 저장을 끈다. 재시작하면 처리 안 된 행만 읽힌다.
@@ -83,7 +84,7 @@ Spring Batch의 가치는 **대량 처리를 "다시 실행해도 안전한" 단
 - 불량 레코드를 만나면 예외를 잡아 로그만 남기고 계속한다. 무엇을 건너뛰었는지 기록이 없다.
 - 오프셋 페이징(`LIMIT/OFFSET`)으로 읽으면서 같은 테이블을 갱신한다.
 - 재실행을 위해 식별 파라미터에 현재 시각을 넣는다. 같은 날짜가 두 번 성공할 수 있다.
-- 6.0으로 올린 뒤 메타데이터 테이블이 비어 있는데 재시작이 되는 줄 안다.
+- 6.0이나 Spring Boot 4로 올린 뒤 메타데이터 테이블이 비어 있는데 재시작이 되는 줄 안다.
 
 ## 실패 재현
 
@@ -110,6 +111,7 @@ Spring Batch의 가치는 **대량 처리를 "다시 실행해도 안전한" 단
 ## 출처
 
 - Spring Batch 6.0.5, [What's new in Spring Batch 6](https://github.com/spring-projects/spring-batch/blob/v6.0.5/spring-batch-docs/modules/ROOT/pages/whatsnew.adoc): resourceless 기본 저장소, `@EnableJdbcJobRepository`, `ChunkOrientedStep`, 생산자-소비자 동시성, `JobOperator.recover`, 폐기 예정 목록.
+- Spring Boot 문서, [Spring Batch](https://docs.spring.io/spring-boot/reference/io/spring-batch.html)와 Spring 블로그 [Spring Boot 4.1 and Spring Batch](https://spring.io/blog/2026/06/21/spring-boot-41-and-spring-batch/): `spring-boot-starter-batch`는 resourceless, JDBC는 `spring-boot-starter-batch-jdbc`. 검색 요약으로 확인했다(2026-09-29 재검토).
 - Spring Batch 6.0.5, [The Domain Language of Batch](https://github.com/spring-projects/spring-batch/blob/v6.0.5/spring-batch-docs/modules/ROOT/pages/domain.adoc): JobInstance와 식별 파라미터, 동시 실행 제한.
 - Spring Batch 6.0.5, [Preventing State Persistence](https://github.com/spring-projects/spring-batch/blob/v6.0.5/spring-batch-docs/modules/ROOT/pages/readers-and-writers/process-indicator.adoc): 처리 표시 패턴과 `saveState`.
 - Spring Batch 6.0.5, [Database readers](https://github.com/spring-projects/spring-batch/blob/v6.0.5/spring-batch-docs/modules/ROOT/pages/readers-and-writers/database.adoc): 정렬 키의 유일 제약.

@@ -1,6 +1,6 @@
 # 사가 패턴
 
-확인: 2026-09-28, Temporal 문서(temporalio/documentation, main) 기준. 사가의 격리 문제와 대응책은 microservices.io와 관련 글을 검색 요약으로 확인했다.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-28, Temporal 문서(temporalio/documentation, main) 기준. 사가의 격리 문제와 대응책은 microservices.io와 관련 글을 검색 요약으로 확인했다.
 
 ## 요약
 
@@ -33,7 +33,7 @@
 - **대응책.** 의미상 잠금(`PENDING` 상태로 표시), 교환 가능한 갱신, 비관적 순서 배치(되돌리기 어려운 단계를 뒤로), 재읽기와 낙관적 잠금이 있다.
 - **지속 실행 엔진.** Temporal 같은 엔진은 오케스트레이션 코드를 지속적으로 실행한다.
   - 활동(activity)은 기본 재시도 정책으로 자동 재시도한다. 초기 간격 1초, 배수 2.0이고, 최대 횟수는 기본 무제한이다.
-  - 문서 안에서 최대 간격이 100초와 10분으로 다르게 적혀 있다. 정책을 명시한다.
+  - 최대 간격 기본값은 초기 간격의 100배, 즉 100초다. 서버 소스의 기본 계수가 100이다. 문서 도입부의 "10분"은 이와 맞지 않으므로 소스를 따르고, 정책은 명시한다.
   - 워크플로 코드는 결정적이어야 한다. 재실행으로 상태를 복원하기 때문이다.
 
 ## 가치
@@ -98,5 +98,6 @@
 
 - Temporal 문서, [Saga Pattern](https://github.com/temporalio/documentation/blob/main/docs/design-patterns/saga-pattern.mdx): 로컬 트랜잭션과 보상, 역순 보상, 완료 시 보상 등록.
 - Temporal 문서, [Retry Policies](https://github.com/temporalio/documentation/blob/main/docs/encyclopedia/retry-policies.mdx): 활동의 기본 자동 재시도, 초기 간격 1초, 배수 2.0, 최대 횟수 무제한, 최대 간격의 불일치 표기(100초와 10분).
+- Temporal 서버 소스, [retry_policy.go](https://github.com/temporalio/temporal/blob/main/common/retrypolicy/retry_policy.go): `MaximumIntervalCoefficient` 100, 최대 간격이 없으면 초기 간격 × 100으로 채움(2026-09-29 재검토).
 - Temporal 문서, [Workflow Definition](https://github.com/temporalio/documentation/blob/main/docs/encyclopedia/workflow/workflow-definition.mdx): 워크플로의 결정성 제약.
 - Chris Richardson, [Pattern: Saga](https://microservices.io/patterns/data/saga.html): 코레오그래피와 오케스트레이션, 격리 부재와 대응책(의미상 잠금, 교환 가능한 갱신, 비관적 순서, 재읽기). 검색 요약으로 확인했다.

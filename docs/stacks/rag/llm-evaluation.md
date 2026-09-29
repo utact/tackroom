@@ -1,6 +1,6 @@
 # LLM 평가
 
-확인: 2026-09-27, Zheng 외 "Judging LLM-as-a-Judge"(NeurIPS 2023), Es 외 RAGAS(EACL 2024 데모), Miller "Adding Error Bars to Evals"(2024), Yao 외 τ-bench(2024), Panickssery 외(NeurIPS 2024)를 검색 요약으로 확인한 기준. 원문 접근이 막혀 수치는 요약에 인용된 값이다.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-27, Zheng 외 "Judging LLM-as-a-Judge"(NeurIPS 2023), Es 외 RAGAS(EACL 2024 데모), Miller "Adding Error Bars to Evals"(2024), Yao 외 τ-bench(2024), Panickssery 외(NeurIPS 2024)를 검색 요약으로 확인한 기준. 원문 접근이 막혀 수치는 요약에 인용된 값이다.
 
 ## 요약
 
@@ -28,7 +28,10 @@ RAG에서는 답이 틀린 원인이 검색 실패, 근거 없는 생성, 오래
 ## 원리
 
 - **실패를 단계별로 나눈다.** RAG 답변의 오류는 대체로 넷이다. 정답 근거가 검색되지 않음(검색 실패), 근거는 있었는데 답이 근거를 벗어남(근거 없는 생성), 근거가 폐기된 판이었음(오래된 원문), 볼 수 없는 문서가 근거로 쓰임(권한 위반). 각각 고칠 곳이 다르다.
-- **RAG 지표.** RAGAS는 정답 없이도 쓸 수 있는 지표로 근거 정밀도(context precision), 근거 재현율(context recall), 충실도(faithfulness), 답변 관련도를 제시했다. 충실도는 답변을 주장들로 쪼개 각 주장이 근거로 뒷받침되는 비율로 잰다.
+- **RAG 지표.** RAGAS 논문은 정답 없이 쓸 수 있는 지표로 충실도(faithfulness), 답변 관련도(answer relevance), 근거 관련도(context relevance) 셋을 제시했다.
+  - 충실도는 답변을 주장들로 쪼개 각 주장이 근거로 뒷받침되는 비율로 잰다.
+  - 논문에서 사람 판정과의 일치는 충실도 95%, 답변 관련도 78%, 근거 관련도 70%였다. 근거를 보는 지표일수록 모델 판정이 덜 믿을 만하다.
+  - 근거 정밀도(context precision)와 근거 재현율(context recall)은 이후 RAGAS 라이브러리에 더해진 지표다. 근거 재현율은 정답(reference)이 있어야 계산된다.
 - **판정 방식.** 코드 판정(형식, 인용 ID가 검색 결과에 있는지, 권한)은 싸고 재현된다. 모델 판정은 의미를 보지만 편향이 있고, 사람 판정은 기준이지만 비싸다.
 - **모델 판정의 편향.**
   - Zheng 외: 위치 편향, 장황함 편향, 자기 강화 편향이 있다. 그래도 강한 판정 모델은 사람 선호와 80% 넘게 일치해, 사람끼리의 일치 수준에 닿았다.
@@ -113,7 +116,8 @@ RAG에서는 답이 틀린 원인이 검색 실패, 근거 없는 생성, 오래
 
 - Zheng 외, [Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena](https://arxiv.org/abs/2306.05685), NeurIPS 2023: 위치·장황함·자기 강화 편향, 강한 판정 모델의 사람 선호 일치 80% 이상.
 - Panickssery 외, [LLM Evaluators Recognize and Favor Their Own Generations](https://arxiv.org/abs/2404.13076), NeurIPS 2024: 자기 선호.
-- Es 외, [RAGAS: Automated Evaluation of Retrieval Augmented Generation](https://arxiv.org/abs/2309.15217): 근거 정밀도·재현율, 충실도, 답변 관련도.
+- Es 외, [RAGAS: Automated Evaluation of Retrieval Augmented Generation](https://arxiv.org/abs/2309.15217): 충실도, 답변 관련도, 근거 관련도와 사람 판정 일치율. 검색 요약으로 확인했다(2026-09-29 재검토).
+- RAGAS 문서, [Context Recall](https://github.com/explodinggradients/ragas/blob/main/docs/concepts/metrics/available_metrics/context_recall.md): 근거 재현율은 정답이 항상 필요함.
 - Miller, [Adding Error Bars to Evals](https://arxiv.org/abs/2411.00640), 2024: 표준오차, 군집 표준오차, 대응 비교, 평가 크기 계획.
 - Yao 외, [τ-bench](https://arxiv.org/abs/2406.12045), 2024: pass^k.
 - [Position: Don't Use the CLT in LLM Evals With Fewer Than a Few Hundred Datapoints](https://arxiv.org/abs/2503.01747): 작은 평가셋에서의 근사 한계. 제목과 주장만 검색으로 확인했다.

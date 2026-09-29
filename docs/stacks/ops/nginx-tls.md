@@ -1,6 +1,6 @@
 # Nginx와 TLS
 
-확인: 2026-09-27, nginx/nginx.org 저장소(main)의 모듈 문서, nginx 최신 태그 1.31.6 기준.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-27, nginx/nginx.org 저장소(main)의 모듈 문서, nginx 최신 태그 1.31.6 기준.
 
 ## 요약
 
@@ -69,7 +69,9 @@ Nginx의 가치는 **애플리케이션 앞에서 느림과 폭주를 흡수하�
 - **스트리밍 경로만 버퍼링을 끈다.** SSE나 LLM 스트리밍 경로에서만 `proxy_buffering off`(또는 응답 헤더 `X-Accel-Buffering: no`)를 쓰고, 그 경로의 읽기 타임아웃을 스트림 길이에 맞춘다.
 - **신뢰하는 프록시만 적는다.** `set_real_ip_from`에는 로드 밸런서의 주소 범위만 넣고, `real_ip_recursive on`으로 헤더에 담긴 주소 중 신뢰하지 않는 마지막 주소를 클라이언트로 쓴다. 클라이언트가 헤더 앞쪽에 넣은 위조 값은 무시된다.
 - **속도 제한은 버스트와 함께.** `limit_req`에 `burst`와 `nodelay`를 두면 짧은 급증은 통과시키고 지속적 초과만 끊는다. 키는 IP만이 아니라 API 키나 사용자 단위도 검토한다.
-- **TLS는 현대 프로토콜만.** 기본값(TLS 1.2, 1.3)을 유지하고, 세션 재개와 OCSP stapling으로 핸드셰이크 비용을 줄인다. 인증서 만료를 경보로 감시한다.
+- **TLS는 현대 프로토콜만.** 기본값(TLS 1.2, 1.3)을 유지하고, 세션 재개로 핸드셰이크 비용을 줄인다.
+- **OCSP stapling은 CA를 확인하고 켠다.** Let's Encrypt는 2025년 5월 인증서에서 OCSP 주소를 빼고 8월에 OCSP 응답기를 껐다. 폐기 정보는 CRL로만 낸다. OCSP 주소가 없는 인증서에 stapling을 켜면 얻는 것 없이 경고만 남는다.
+- **인증서 갱신은 자동화가 전제다.** CA/Browser Forum 결의(SC-081v3)로 공개 TLS 인증서의 최대 수명이 2026년 3월 15일부터 200일, 2027년부터 100일, 2029년부터 47일로 준다. ACME 자동 갱신을 두고, 만료까지 남은 일수를 경보로 감시한다.
 - **요청 경로를 층별로 진단한다.** 느리거나 실패하면 DNS 조회, TCP 연결, TLS 핸드셰이크, 첫 바이트, 전송 순서로 나눠 잰다(`curl -w`의 `time_namelookup`, `time_connect`, `time_appconnect`, `time_starttransfer`). Nginx 로그에 `$request_time`과 `$upstream_response_time`을 함께 남기면 지연이 프록시와 애플리케이션 중 어디인지 보인다.
 
 ## 임시방책의 신호
@@ -105,5 +107,7 @@ Nginx의 가치는 **애플리케이션 앞에서 느림과 폭주를 흡수하�
 - nginx 문서, [ngx_http_proxy_module](https://github.com/nginx/nginx.org/blob/main/xml/en/docs/http/ngx_http_proxy_module.xml): `proxy_read_timeout`·`proxy_connect_timeout` 기본 60초와 읽기 사이 적용, `proxy_next_upstream` 기본값과 비멱등 요청, 응답 시작 후 재시도 불가, `proxy_next_upstream_tries`, `proxy_buffering`.
 - nginx 문서, [ngx_http_upstream_module](https://github.com/nginx/nginx.org/blob/main/xml/en/docs/http/ngx_http_upstream_module.xml): 1.29.7부터 keepalive 캐시 기본 활성.
 - nginx 문서, [ngx_http_ssl_module](https://github.com/nginx/nginx.org/blob/main/xml/en/docs/http/ngx_http_ssl_module.xml): `ssl_protocols` 기본 TLSv1.2 TLSv1.3.
+- Let's Encrypt, [Ending OCSP Support in 2025](https://letsencrypt.org/2024/12/05/ending-ocsp)와 [OCSP Service Has Reached End of Life](https://letsencrypt.org/2025/08/06/ocsp-service-has-reached-end-of-life): 2025-05-07 인증서에서 OCSP 주소 제거, 2025-08-06 응답기 종료. 검색 요약으로 확인했다(2026-09-29 재검토).
+- CA/Browser Forum, [Ballot SC081v3](https://cabforum.org/2025/04/11/ballot-sc081v3-introduce-schedule-of-reducing-validity-and-data-reuse-periods/): 인증서 최대 수명 단계적 단축. 검색 요약으로 확인했다(2026-09-29 재검토).
 - nginx 문서, [ngx_http_realip_module](https://github.com/nginx/nginx.org/blob/main/xml/en/docs/http/ngx_http_realip_module.xml): 신뢰 주소와 재귀 탐색.
 - nginx 문서, [ngx_http_limit_req_module](https://github.com/nginx/nginx.org/blob/main/xml/en/docs/http/ngx_http_limit_req_module.xml): 지연과 버스트, 기본 버스트 0.

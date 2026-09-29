@@ -1,6 +1,6 @@
 # MySQL InnoDB
 
-확인: 2026-09-27, MySQL 8.4 LTS(소스 태그 mysql-8.4.9)와 8.4 레퍼런스 매뉴얼 기준. 혁신 릴리스는 9.7까지 나와 있다.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-27, MySQL 8.4 LTS(소스 태그 mysql-8.4.9)와 8.4 레퍼런스 매뉴얼 기준. 혁신 릴리스는 9.7까지 나와 있다.
 
 ## 요약
 
@@ -60,7 +60,7 @@ InnoDB의 가치는 **기본 키 중심 접근의 효율과 넓은 운영 생태
 
 - **"없으면 넣기"는 유일 제약과 `INSERT ... ON DUPLICATE KEY UPDATE`나 `INSERT IGNORE`로 한다.** 잠금 읽기로 존재를 확인하지 않는다. 멱등 키도 유일 인덱스로 받는다.
 - **기본 키는 좁고 순서대로 커지게 한다.** 자동 증가 정수나 시간 순 UUID(UUIDv7 등)를 `BINARY(16)`으로 저장한다. 외부에 노출할 ID와 내부 기본 키를 나누는 것도 방법이다.
-- **잠금 범위는 인덱스로 줄인다.** 조건 컬럼에 인덱스를 두고 `EXPLAIN`으로 확인한다. 유일 인덱스의 동등 비교면 틈 없이 레코드만 잠근다.
+- **잠금 범위는 인덱스로 줄인다.** 조건 컬럼에 인덱스를 두고 `EXPLAIN`으로 확인한다. 유일 인덱스의 동등 비교는 행을 찾았을 때만 틈 없이 레코드만 잠근다. 찾는 행이 없으면 틈을 잠가, "없으면 넣기"의 데드락 조건은 그대로 남는다.
 - **DDL 세션에는 짧은 `lock_wait_timeout`을 건다.** `SET SESSION lock_wait_timeout = 5`처럼 두고 실패하면 재시도한다. 먼저 `performance_schema.metadata_locks`와 긴 트랜잭션을 확인한다.
 - **INSTANT가 되는지 명시한다.** `ALTER TABLE ... ALGORITHM=INSTANT`로 적으면 INSTANT가 불가능할 때 조용히 테이블을 다시 쓰는 대신 오류를 낸다. 불가능한 변경은 gh-ost 같은 도구로 한다.
 - **데드락은 로그로 원인을 본다.** `SHOW ENGINE INNODB STATUS`의 최근 데드락 절에서 어떤 잠금(레코드, gap, 삽입 의도)이 부딪혔는지 본다. 데드락은 정상 동작의 일부이므로 트랜잭션 재시도를 넣는다.
@@ -84,7 +84,7 @@ InnoDB의 가치는 **기본 키 중심 접근의 효율과 넓은 운영 생태
 ## 측정과 검증
 
 - **정합성은 불변식으로 전수 검사한다.** 동시성 실험 후 SQL로 불변식 위반을 센다.
-- **잠금 비용.** 부하 중 데드락 수(`Innodb_deadlocks` 계열 지표, `SHOW ENGINE INNODB STATUS`), 행 잠금 대기 시간(`Innodb_row_lock_time_avg`), 재시도 횟수를 본다.
+- **잠금 비용.** 부하 중 데드락 수(`INFORMATION_SCHEMA.INNODB_METRICS`의 `lock_deadlocks`), 행 잠금 대기 시간(`Innodb_row_lock_time_avg`), 재시도 횟수를 본다. MySQL에는 `Innodb_deadlocks` 상태 변수가 없다(MariaDB에는 있다). 데드락마다 원인을 남기려면 `innodb_print_all_deadlocks`를 켠다.
 - **쿼리 성능.** `performance_schema`의 문장 요약(`events_statements_summary_by_digest`)으로 상위 쿼리를 찾고 `EXPLAIN ANALYZE`로 본다.
 - **부하 시험.** sysbench나 [k6](../verify/k6.md)로 실제 요청 비율을 재현해 동시 접속 수에 따른 처리량과 p99 지연을 그린다.
 
@@ -96,7 +96,8 @@ InnoDB의 가치는 **기본 키 중심 접근의 효율과 넓은 운영 생태
 ## 출처
 
 - MySQL 소스 8.4.9, [sys_vars.cc](https://github.com/mysql/mysql-server/blob/mysql-8.4.9/sql/sys_vars.cc): `transaction_isolation` 기본값 Repeatable Read, `lock_wait_timeout` 기본값 `LONG_TIMEOUT`.
-- MySQL 소스 8.4.9, [ha_innodb.cc](https://github.com/mysql/mysql-server/blob/mysql-8.4.9/storage/innobase/handler/ha_innodb.cc): `innodb_lock_wait_timeout` 기본값 50초.
+- MySQL 소스 8.4.9, [ha_innodb.cc](https://github.com/mysql/mysql-server/blob/mysql-8.4.9/storage/innobase/handler/ha_innodb.cc): `innodb_lock_wait_timeout` 기본값 50초, `Innodb_row_lock_*` 상태 변수(데드락 수 상태 변수는 없음, 2026-09-29 재검토).
+- MySQL 8.4 Reference Manual, [Deadlocks in InnoDB](https://dev.mysql.com/doc/refman/8.4/en/innodb-deadlocks.html): `lock_deadlocks` 지표와 `innodb_print_all_deadlocks`. 검색 요약으로 확인했다.
 - MySQL 8.4 Reference Manual, [InnoDB Locking](https://dev.mysql.com/doc/refman/8.4/en/innodb-locking.html), [Transaction Isolation Levels](https://dev.mysql.com/doc/refman/8.4/en/innodb-transaction-isolation-levels.html), [Consistent Nonlocking Reads](https://dev.mysql.com/doc/refman/8.4/en/innodb-consistent-read.html): next-key 잠금, 일관 읽기, 갱신의 semi-consistent read. 이 환경에서는 원문 접근이 막혀 검색 요약으로 확인했다.
 - MySQL 8.4 Reference Manual, [Online DDL Operations](https://dev.mysql.com/doc/refman/8.4/en/innodb-online-ddl-operations.html): INSTANT 기본 알고리즘과 제약. 검색 요약으로 확인했다.
 - `lock_wait_timeout` 기본값 31,536,000초는 [검색 결과의 2차 자료](https://oneuptime.com/blog/post/2026-03-31-mysql-metadata-locks/view)와 소스의 `LONG_TIMEOUT`을 함께 근거로 한다.

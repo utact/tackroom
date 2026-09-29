@@ -1,6 +1,6 @@
 # SSE
 
-확인: 2026-09-28, MDN(mdn/content, main), nginx.org 문서(main), WHATWG HTML 표준(검색 요약) 기준.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-28, MDN(mdn/content, main), nginx.org 문서(main), WHATWG HTML 표준(검색 요약) 기준.
 
 ## 요약
 
@@ -22,7 +22,7 @@ SSE(Server-Sent Events)는 HTTP 응답 하나를 열어 둔 채 서버가 `text/
 
 ## 원리
 
-- **하나의 긴 HTTP 응답.** 서버는 `text/event-stream`으로 응답하고 연결을 닫지 않는다. 이벤트는 UTF-8 텍스트이고, 빈 줄 두 개로 구분된다.
+- **하나의 긴 HTTP 응답.** 서버는 `text/event-stream`으로 응답하고 연결을 닫지 않는다. 이벤트는 UTF-8 텍스트이고, 빈 줄 하나(줄바꿈 두 번)로 구분된다.
 - **필드.** `data`(내용), `event`(이벤트 이름), `id`(이벤트 ID), `retry`(재연결 대기 밀리초). 콜론으로 시작하는 줄은 주석이다. MDN은 주석을 주기적으로 보내 연결이 시간 초과로 끊기지 않게 하라고 설명한다.
 - **자동 재연결과 이어받기.** 끊기면 브라우저가 `retry` 간격 뒤 다시 연결하고, 마지막으로 받은 `id`를 `Last-Event-ID` 헤더로 싣는다. 서버는 그 이후의 이벤트부터 보내면 된다.
 - **연결 수 제한.** MDN은 HTTP/2가 아닐 때 브라우저별 도메인당 동시 연결이 6개로 제한되어, 탭을 여러 개 열면 SSE 연결이 다른 요청을 막을 수 있다고 경고한다. HTTP/2에서는 한 연결 위의 스트림으로 다룬다.
@@ -94,7 +94,7 @@ SSE의 가치는 **푸시의 지연과 HTTP의 단순함을 함께 얻는 것**�
 
 ## 출처
 
-- MDN, [Using server-sent events](https://github.com/mdn/content/blob/main/files/en-us/web/api/server-sent_events/using_server-sent_events/index.md): `text/event-stream`, 필드, 주석과 연결 유지, `retry`, HTTP/2가 아닐 때 연결 6개 제한.
+- MDN, [Using server-sent events](https://github.com/mdn/content/blob/main/files/en-us/web/api/server-sent_events/using_server-sent_events/index.md): `text/event-stream`, 줄바꿈 두 번으로 끝나는 메시지, 필드, 주석과 연결 유지, `retry`, HTTP/2가 아닐 때 연결 6개 제한.
 - MDN, [EventSource()](https://github.com/mdn/content/blob/main/files/en-us/web/api/eventsource/eventsource/index.md): 옵션은 `withCredentials`뿐.
 - WHATWG, [HTML Server-sent events](https://html.spec.whatwg.org/multipage/server-sent-events.html): 재연결 요청의 `Last-Event-ID` 헤더. 검색 요약으로 확인했다.
 - nginx 문서, [ngx_http_proxy_module](https://github.com/nginx/nginx.org/blob/main/xml/en/docs/http/ngx_http_proxy_module.xml): 읽기 타임아웃 60초, 버퍼링 기본 on, `X-Accel-Buffering`.

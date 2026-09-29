@@ -1,6 +1,6 @@
 # Kafka
 
-확인: 2026-09-27, Apache Kafka 4.3.1 문서와 소스 기준.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-27, Apache Kafka 4.3.1 문서와 소스 기준.
 
 ## 요약
 
@@ -50,7 +50,9 @@ Kafka의 가치는 "메시지 전달"보다 **공유되고 다시 읽을 수 있
 - **병렬성 상한이 파티션 수다.** 한 메시지 처리가 느리면 그 파티션 전체가 막힌다(head-of-line blocking). 메시지별 재시도나 지연 재처리가 기본 기능에 없다.
 - **소비자 기본값은 at-least-once다.** `enable.auto.commit` 기본값이 true라, 처리 전 커밋이면 유실, 처리 후 커밋 전 장애면 중복이다. 외부 DB에 쓰는 소비자는 중복을 스스로 흡수해야 한다.
 - **exactly-once는 Kafka 안에서만이다.** 트랜잭션은 Kafka 토픽을 읽고 Kafka 토픽에 쓰는 경우에 성립한다. 외부 시스템으로 쓰는 경우는 그 시스템의 협조가 필요하다고 문서가 밝힌다.
-- **기본 내구성 설정이 느슨하다.** `acks` 기본값은 `all`이지만 `min.insync.replicas` 기본값은 1이다. 복제본이 하나만 남아도 쓰기가 성공하고, 그 복제본마저 잃으면 확인받은 메시지가 사라진다.
+- **기본 내구성 설정이 느슨하다.** `acks` 기본값은 `all`이지만 `min.insync.replicas` 기본값은 1이다. 복제본이 하나만 남아도 쓰기가 성공한다.
+  - 그 복제본이 멈추면, `unclean.leader.election.enable` 기본값 false에서는 파티션이 멈춘 채 그 복제본이 돌아오기를 기다린다.
+  - 그 복제본의 디스크를 잃거나 unclean 리더 선출을 켜 두면 확인받은 메시지가 사라진다.
 - **리밸런스.** `max.poll.interval.ms`(기본 300초) 안에 다음 poll을 못 하면 소비자가 그룹에서 빠지고 파티션이 재배정된다. 처리 중이던 메시지는 다른 소비자가 다시 처리한다.
 - **운영 부담.** 브로커 클러스터(KRaft 컨트롤러 포함), 토픽별 파티션·보존·복제 설정, 스키마 호환성, 소비 지연(lag) 감시가 새 일이 된다. 관리형 서비스를 써도 파티션 설계와 스키마 관리는 남는다.
 - **되돌리기 어렵다.** 한번 여러 팀이 토픽을 구독하면 메시지 형식과 키 설계를 바꾸기 어렵다.
@@ -93,9 +95,10 @@ DB에 쓰고 Kafka에 발행하는 코드는 [Outbox와 CDC](outbox-cdc.md)가 �
 - **처리 후 커밋 전 종료.** 소비자가 DB에 쓴 직후, offset 커밋 직전에 프로세스를 강제로 죽인다(`kill -9`). 재시작 후 같은 메시지가 다시 처리되는지 본다.
 - **커밋 후 처리 전 종료.** 자동 커밋을 켠 채 처리 중간에 죽여서 유실을 만든다.
 - **복제본 손실.** 복제본 3, `min.insync.replicas=1`로 확인받은 메시지가 사라지는 것을 본다.
-  1. 팔로워 둘을 멈추고 `acks=all`로 쓴다.
-  2. 리더를 멈추고 팔로워를 되살린다.
-  3. `min.insync.replicas=2`로 반복하면 1단계의 쓰기가 거부된다.
+  1. 팔로워 둘을 멈추고 `acks=all`로 쓴다. ISR이 리더 하나라 쓰기가 성공한다.
+  2. 리더를 멈추고 팔로워를 되살린다. 기본 설정에서는 파티션이 오프라인으로 남는다. 유실이 아니라 불가용이다.
+  3. 토픽에 `unclean.leader.election.enable=true`를 주거나 멈춘 리더의 로그 디렉터리를 지우고 반복하면, 되살린 팔로워가 리더가 되며 1단계의 메시지가 사라진다.
+  4. `min.insync.replicas=2`로 반복하면 1단계의 쓰기가 거부된다.
 - **파티션 증설.** 키가 있는 메시지를 보내는 중에 파티션 수를 늘리고, 같은 키가 두 파티션에 나뉘어 순서가 뒤집히는지 본다.
 - **느린 처리.** 처리 시간을 `max.poll.interval.ms`보다 길게 만들어 리밸런스와 중복 처리를 만든다.
 - **네트워크 지연.** [Toxiproxy](../verify/toxiproxy.md)로 클라이언트와 브로커 사이에 지연과 끊김을 넣어 프로듀서 재시도를 일으킨다. 멱등 설정을 끄고 켜서 중복을 비교한다.
@@ -118,7 +121,7 @@ DB에 쓰고 Kafka에 발행하는 코드는 [Outbox와 CDC](outbox-cdc.md)가 �
 
 ## 출처
 
-- Apache Kafka, [Design](https://github.com/apache/kafka/blob/4.3.1/docs/design/design.md): 소비 위치, 전달 의미, 트랜잭션, 공유 소비자, 복제와 unclean 리더 선출, 로그 압축 보장.
+- Apache Kafka, [Design](https://github.com/apache/kafka/blob/4.3.1/docs/design/design.md): 소비 위치, 전달 의미, 트랜잭션, 공유 소비자, 복제와 unclean 리더 선출(기본 비활성, ISR 전부를 잃으면 가장 최근 리더를 기다림), 로그 압축 보장.
 - Apache Kafka, [Consumer Rebalance Protocol](https://github.com/apache/kafka/blob/4.3.1/docs/operations/consumer-rebalance-protocol.md): KIP-848이 4.0부터 운영 수준.
 - Apache Kafka, [Upgrade](https://github.com/apache/kafka/blob/4.3.1/docs/getting-started/upgrade.md): 공유 그룹이 4.1 미리보기, 4.2 운영 수준.
 - Apache Kafka, [Basic Kafka Operations](https://github.com/apache/kafka/blob/4.3.1/docs/operations/basic-kafka-operations.md): 파티션 증설 시 키 배치 변화.

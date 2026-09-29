@@ -1,6 +1,6 @@
 # Elasticsearch
 
-확인: 2026-09-27, Elasticsearch v9.5.4 레퍼런스 문서(elastic/elasticsearch 저장소 docs/reference) 기준.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-27, Elasticsearch v9.5.4 레퍼런스 문서(elastic/elasticsearch 저장소 docs/reference) 기준.
 
 ## 요약
 
@@ -52,7 +52,10 @@ Elasticsearch의 가치는 **"무엇이 가장 맞는가"를 대량 데이터에
 - **매핑 폭발.** 동적 매핑이 켜진 상태로 임의 키가 있는 JSON을 넣으면 필드가 끝없이 늘어난다. 필드 수 상한 기본값은 1,000이다.
 - **깊은 페이지가 비싸다.** `from + size`에 비례해 힙과 시간을 쓴다. 문서는 이 이유로 10,000 상한을 둔다.
 - **운영 부담.** JVM 힙, 샤드 수와 크기, 노드 역할, 스냅샷, 버전 업그레이드를 관리해야 한다. 샤드가 너무 많으면 클러스터 상태가 무거워진다.
-- **라이선스와 포크.** Elastic의 라이선스 변경 뒤 AWS 주도의 OpenSearch 포크가 있다. 관리형 서비스와 플러그인 선택이 달라진다.
+- **라이선스와 포크.** 2021년 Elastic이 Apache 2.0을 떠나자 AWS가 OpenSearch로 포크했다. 이후 둘 다 바뀌었다.
+  - Elastic은 2024년 8월 소스 코드의 선택지로 OSI 승인 라이선스인 AGPLv3를 더했다. SSPL, ELv2와 함께 셋 중 하나를 고른다.
+  - OpenSearch는 2024년 9월 Linux Foundation 산하 OpenSearch Software Foundation으로 옮겨 가 AWS 단독 주도가 아니다.
+  - 관리형 서비스와 플러그인 선택이 달라지므로, 고를 때는 라이선스 조건(AGPL의 네트워크 제공 의무 등)을 법무와 함께 본다.
 
 ## 대안과 경계
 
@@ -61,7 +64,7 @@ Elasticsearch의 가치는 **"무엇이 가장 맞는가"를 대량 데이터에
 | PostgreSQL 전문 검색, `pg_trgm` | 데이터가 수백만 건 이하이고, 트랜잭션 일관성이 중요하고, 관련도 튜닝 요구가 작다. 새 인프라가 없다. |
 | [pgvector](pgvector.md) | 의미 기반 검색(임베딩 유사도)이 주 요구다. Elasticsearch도 벡터 검색을 지원하므로 둘 중 하나로 모을 수 있다. |
 | [하이브리드 검색과 리랭킹](hybrid-rerank.md) | 키워드와 의미 검색을 합친다. Elasticsearch 안에서 하거나 애플리케이션에서 합친다. |
-| OpenSearch | Elasticsearch와 비슷한 기능을 Apache 2.0 라이선스로 원한다. API는 갈라지고 있다. |
+| OpenSearch | Elasticsearch와 비슷한 기능을 Apache 2.0 라이선스로 원한다. AGPL 조건을 받아들일 수 없거나 재단 거버넌스를 원한다. API는 갈라지고 있다. |
 | 관리형 검색 서비스 | 운영을 맡기고 기능 범위가 맞는다. |
 
 ## 깊이 있는 활용
@@ -118,4 +121,5 @@ Elasticsearch의 가치는 **"무엇이 가장 맞는가"를 대량 데이터에
 - Elasticsearch v9.5.4, [The refresh parameter](https://github.com/elastic/elasticsearch/blob/v9.5.4/docs/reference/elasticsearch/rest-apis/refresh-parameter.md): `true`의 비용 경고, `wait_for`.
 - Elasticsearch v9.5.4, [Optimistic concurrency control](https://github.com/elastic/elasticsearch/blob/v9.5.4/docs/reference/elasticsearch/rest-apis/optimistic-concurrency-control.md), [Reindex](https://github.com/elastic/elasticsearch/blob/v9.5.4/docs/reference/elasticsearch/rest-apis/reindex-indices.md): 순번과 임기, `version_type: external`.
 - Elasticsearch v9.5.4, [Paginate search results](https://github.com/elastic/elasticsearch/blob/v9.5.4/docs/reference/elasticsearch/rest-apis/paginate-search-results.md): 10,000건 한도와 `search_after`.
+- Elastic, [FAQ on Software Licensing](https://www.elastic.co/pricing/faq/licensing)과 Linux Foundation, [OpenSearch Software Foundation 발표](https://www.linuxfoundation.org/press/linux-foundation-announces-opensearch-software-foundation-to-foster-open-collaboration-in-search-and-analytics): 2024-08-29 AGPLv3 선택지 추가, 2024-09-16 재단 출범. 검색 요약으로 확인했다(2026-09-29 재검토).
 - Elasticsearch v9.5.4, [Nori analysis plugin](https://github.com/elastic/elasticsearch/blob/v9.5.4/docs/reference/elasticsearch-plugins/analysis-nori-analyzer.md): 한국어 형태소 분석.

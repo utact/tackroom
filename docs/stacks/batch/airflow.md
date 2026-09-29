@@ -1,11 +1,12 @@
 # Airflow
 
-확인: 2026-09-27, Apache Airflow 3.3.2 문서와 설정 템플릿(`config.yml`) 기준.
+확인: 2026-09-29 재검토. 최초 조사는 2026-09-27, Apache Airflow 3.3.2 문서와 설정 템플릿(`config.yml`) 기준.
 
 ## 요약
 
 Airflow는 여러 단계의 작업과 그 사이의 의존성을 Python 코드(Dag)로 정의하고, 스케줄러가 각 실행(Dag run)의 작업을 순서대로 실행하며 상태를 메타데이터 DB에 기록하는 워크플로 도구다.
-실행마다 처리 대상 구간(data interval)이 붙어서, 과거 구간을 다시 실행(backfill)하거나 실패한 단계만 다시 돌리는 운영이 핵심 가치다.
+구간 시간표(data interval timetable)를 쓰면 실행마다 처리 대상 구간이 붙어서, 과거 구간을 다시 실행(backfill)하거나 실패한 단계만 다시 돌리는 운영이 핵심 가치다.
+Airflow 3의 cron 스케줄 기본값은 구간 없이 예약 시각만 갖는 시간표라서, 구간 의미는 명시적으로 켜야 한다.
 작업 자체를 처리하는 엔진이 아니라, 다른 시스템의 작업을 순서대로 부르고 지켜보는 조율자다.
 
 ## 문제 신호
@@ -26,7 +27,10 @@ Airflow는 여러 단계의 작업과 그 사이의 의존성을 Python 코드(D
 ## 원리
 
 - **Dag와 작업.** 작업(task)과 작업 사이의 의존성을 방향 비순환 그래프로 정의한다. 스케줄러는 의존성이 충족된 작업만 실행기(executor)로 보낸다.
-- **Dag run과 data interval.** 시간 기반 스케줄의 각 실행은 처리할 구간을 갖고, 그 구간이 끝난 뒤에 예약된다. 1일 스케줄이면 어제 구간의 실행이 오늘 자정 이후에 돈다.
+- **시간표 두 종류.** `schedule`에 cron 문자열이나 timedelta를 주면 어느 시간표를 쓸지 설정이 정한다.
+  - Airflow 3의 기본값(`create_cron_data_intervals`, `create_delta_data_intervals` 모두 False)은 trigger 시간표다. cron 자체처럼 예약 시각에 돌고, 논리 날짜가 그 예약 시각이다. 처리할 구간은 없다.
+  - data interval 시간표(`CronDataIntervalTimetable`)는 구간이 끝난 뒤에 실행을 예약하고, 논리 날짜가 구간의 시작이다. 1일 스케줄이면 어제 구간의 실행이 오늘 자정 이후에 돈다. Airflow 2의 cron 기본 동작이 이것이었다.
+  - 설정을 바꾸는 대신 Dag의 `schedule`에 `CronDataIntervalTimetable`을 직접 넘겨 Dag마다 명시할 수 있다.
 - **catchup과 backfill.**
   - Airflow 3에서 `catchup` 기본값은 False라, 활성화 전의 놓친 구간을 자동으로 만들지 않는다.
   - 과거 구간은 CLI나 REST API의 backfill로 만든다. 이미 있는 실행의 처리 방식(none, failed, completed)과 동시 실행 수를 정한다.
@@ -54,8 +58,8 @@ Airflow의 가치는 **"어느 구간의 어느 단계가 끝났는가"를 기�
 - **스케줄 지연.** Airflow는 실시간 시스템이 아니다. 작업 사이에 스케줄링 지연이 있어 짧은 작업이 많은 파이프라인은 대기 시간이 실행 시간보다 길 수 있다.
 - **Dag 파싱 비용.** 최상위 코드가 무거우면 파싱이 느려지고 스케줄러 전체가 느려진다. 파일 파싱에는 시간 상한(`dagbag_import_timeout`, 기본 30초)이 있다.
 - **큰 데이터를 작업 사이로 넘기면 안 된다.** 작업 사이 메시지(XCom)는 작은 값용이다. 문서는 큰 데이터는 원격 저장소에 두고 경로만 넘기라고 한다.
-- **시간 의미론이 헷갈린다.** 논리 날짜(logical date)는 구간의 시작이지 실행 시각이 아니다. 이를 모르고 날짜를 쓰면 하루씩 어긋난다.
-- **버전 이행 비용.** Airflow 3은 작업의 DB 직접 접근 제거, 기본값 변경(catchup) 등 2.x와 다른 점이 많다.
+- **시간 의미론이 헷갈린다.** 논리 날짜(logical date)는 시간표에 따라 뜻이 다르다. data interval 시간표에서는 구간의 시작이고, Airflow 3 기본 trigger 시간표에서는 예약 시각이다. Airflow 2에서 옮긴 Dag가 논리 날짜를 구간 시작으로 가정하면 하루씩 어긋난다.
+- **버전 이행 비용.** Airflow 3은 작업의 DB 직접 접근 제거, 기본값 변경(catchup, cron 시간표) 등 2.x와 다른 점이 많다.
 
 ## 대안과 경계
 
@@ -69,8 +73,9 @@ Airflow의 가치는 **"어느 구간의 어느 단계가 끝났는가"를 기�
 
 ## 깊이 있는 활용
 
+- **구간이 필요한 Dag는 구간 시간표를 명시한다.** `CronDataIntervalTimetable`을 `schedule`에 넘기거나 `create_cron_data_intervals`를 켠다. 기본 trigger 시간표는 구간 길이(`interval`) 기본값이 0이라 `data_interval_start`와 `data_interval_end`가 같은 시각이고, 구간으로 쓰면 빈 구간을 처리한다. trigger 시간표를 유지하려면 `CronTriggerTimetable`에 `interval`을 준다.
 - **작업을 "구간 → 결과 파티션" 함수로 만든다.** 작업은 data interval을 입력으로 받아 그 구간만 읽고, 결과를 그 구간의 파티션에 덮어쓴다(파티션 교체나 UPSERT). 같은 구간을 몇 번 돌려도 결과가 같아진다. backfill과 재실행이 안전해진다.
-- **`now()` 대신 구간 값을 쓴다.** 날짜 계산은 `data_interval_start`, `data_interval_end`로 한다. 논리 날짜가 구간의 시작이라는 점을 감안한다.
+- **`now()` 대신 구간 값을 쓴다.** 날짜 계산은 `data_interval_start`, `data_interval_end`로 한다. 구간 시간표에서 논리 날짜가 구간의 시작이라는 점을 감안한다.
 - **Airflow는 부르기만 한다.** 무거운 처리는 DB, Spark, dbt, 컨테이너에서 하고, 작업은 호출과 결과 확인만 한다. 워커 자원과 처리 자원이 분리된다.
 - **catchup은 끄고 backfill은 명시적으로 한다.** 새 Dag를 켤 때 수백 개 과거 실행이 몰리는 것을 막는다. 과거 구간이 필요하면 backfill의 동시 실행 수(`max_active_runs`)를 낮게 걸어 하위 시스템을 보호한다.
 - **재시도는 작업마다 정한다.** 기본 재시도 0이다. 외부 API 호출처럼 일시적 실패가 있는 작업은 재시도와 지연을 두고, 데이터 검증 작업은 재시도하지 않는다.
@@ -81,6 +86,7 @@ Airflow의 가치는 **"어느 구간의 어느 단계가 끝났는가"를 기�
 ## 임시방책의 신호
 
 - 작업이 "오늘 날짜"나 "최신 데이터"를 읽는다. backfill이 전부 같은 결과를 낸다.
+- 기본 trigger 시간표인 줄 모르고 `data_interval_start`부터 `data_interval_end`까지를 처리해, 매번 빈 구간을 처리한다.
 - 재실행하면 중복 행이 쌓여서, 재실행 전에 사람이 행을 지운다.
 - 큰 DataFrame을 XCom으로 넘긴다.
 - Dag 파일 최상위에서 DB나 API를 호출해 Dag 목록을 만든다.
@@ -91,6 +97,7 @@ Airflow의 가치는 **"어느 구간의 어느 단계가 끝났는가"를 기�
 
 - **재실행 멱등성.** 같은 구간을 두 번 실행해 결과 테이블의 행 수와 값이 같은지 본다. `INSERT` 버전과 파티션 교체 버전을 비교한다.
 - **입력 변경 중 재실행.** 입력 데이터를 바꾼 뒤 과거 구간을 재실행해, "최신 읽기" 작업은 결과가 바뀌고 "구간 읽기" 작업은 그대로인지 본다.
+- **시간표 차이.** 같은 cron 문자열로 기본 설정과 `create_cron_data_intervals=True`에서 Dag를 켜고, 실행 시각, 논리 날짜, `data_interval_start`·`data_interval_end`를 비교한다.
 - **중간 단계 실패.** 가운데 작업을 실패시키고 그 작업만 다시 실행(clear)해 뒤 단계가 이어지는지, 앞 단계는 다시 돌지 않는지 본다.
 - **catchup 폭주.** `catchup=True`로 오래전 `start_date`의 Dag를 켜고 생성되는 실행 수와 하위 시스템 부하를 본다.
 - **파싱 지연.** 최상위에 느린 호출을 넣어 Dag 파싱 시간과 스케줄 지연이 늘어나는 것을 본다.
@@ -116,4 +123,5 @@ Airflow의 가치는 **"어느 구간의 어느 단계가 끝났는가"를 기�
 - Apache Airflow 3.3.2, [Backfill](https://github.com/apache/airflow/blob/3.3.2/airflow-core/docs/core-concepts/backfill.rst): 재처리 옵션과 동시성 제어.
 - Apache Airflow 3.3.2, [Best Practices](https://github.com/apache/airflow/blob/3.3.2/airflow-core/docs/best-practices.rst): UPSERT, 특정 파티션 읽기·쓰기, `now()` 금지, XCom은 작은 값, 최상위 코드 피하기.
 - Apache Airflow 3.3.2, [Architecture Overview](https://github.com/apache/airflow/blob/3.3.2/airflow-core/docs/core-concepts/overview.rst): Dag processor, Dag bundle, API 서버, task SDK, 메타데이터 DB.
-- Apache Airflow 3.3.2, [config.yml](https://github.com/apache/airflow/blob/3.3.2/airflow-core/src/airflow/config_templates/config.yml): `default_task_retries` 0, `max_active_runs_per_dag` 16, `dagbag_import_timeout` 30초.
+- Apache Airflow 3.3.2, [config.yml](https://github.com/apache/airflow/blob/3.3.2/airflow-core/src/airflow/config_templates/config.yml): `default_task_retries` 0, `max_active_runs_per_dag` 16, `dagbag_import_timeout` 30초, `create_cron_data_intervals`·`create_delta_data_intervals` 기본 False와 두 시간표의 논리 날짜 차이(2026-09-29 재검토).
+- Apache Airflow 3.3.2 소스, [trigger.py](https://github.com/apache/airflow/blob/3.3.2/airflow-core/src/airflow/timetables/trigger.py): trigger 시간표의 `interval` 기본값 0(2026-09-29 재검토).
