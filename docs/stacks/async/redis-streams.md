@@ -41,6 +41,8 @@ Redis Streams의 가치는 **새 인프라 없이 얻는 "저장되는" 메시�
 
 그래서 Redis Streams가 맞는 상황은 Redis가 이미 있고, 메시지 유실이 드물게 허용되거나 다른 방식으로 복구 가능한 경우다.
 
+- **학습 실험.** 알림 작업의 소비자를 읽기 직후 멈춘다. pending 목록과 인수 과정을 확인하고, 작업 반영 후 ack 전 종료에서 중복을 센다. 보존 길이를 줄였을 때 복구 가능한 범위도 확인한다.
+
 ## 트레이드오프와 리스크
 
 - **내구성이 Redis 설정만큼이다.**
@@ -88,7 +90,7 @@ Redis Streams의 가치는 **새 인프라 없이 얻는 "저장되는" 메시�
 - **소비자 영구 종료.** 소비자가 항목을 받은 뒤 확인 전에 죽이고 다시 띄우지 않는다. 다른 소비자의 재할당 루프가 그 항목을 가져가는지, 재할당 로직이 없으면 PEL에 남는지 본다.
 - **독 메시지.** 항상 실패하는 항목을 넣고, 전달 횟수가 한도에 닿아 격리 스트림으로 가는지 본다.
 - **failover 유실.** 복제를 [Toxiproxy](../verify/toxiproxy.md)로 늦추고 `XADD` 직후 마스터를 죽여, 확인받은 추가가 사라지는지 본다. `WAIT`를 넣고 반복한다.
-- **재시작 유실.** `appendfsync`를 `everysec`와 `always`로 바꿔 가며 쓰기 도중 전원을 끊듯이 `kill -9`하고, 재시작 후 빠진 항목을 센다.
+- **프로세스와 호스트 장애를 나눈다.** `kill -9`는 Redis 프로세스를 종료하지만 OS와 페이지 캐시는 남긴다. 프로세스 종료 실험과, 격리된 시험 VM의 강제 전원 차단 등 OS 캐시까지 잃는 실험을 구분한다. `appendfsync`를 `everysec`와 `always`로 바꾸며 클라이언트가 성공 응답을 받은 ID 중 빠진 것을 센다. 컨테이너 종료만으로 전원 장애 내구성을 검증했다고 쓰지 않는다.
 - **메모리 압박.** `maxmemory`를 낮게 두고 `allkeys-lru`에서 스트림 키가 퇴출되는지 본다.
 
 ## 측정과 검증
@@ -110,4 +112,5 @@ Redis Streams의 가치는 **새 인프라 없이 얻는 "저장되는" 메시�
 - Redis, [Redis Streams](https://github.com/redis/docs/blob/main/content/develop/data-types/streams/_index.md): 소비자 그룹, PEL, `XAUTOCLAIM`, 전달 횟수와 dead letter, 8.8의 `XNACK`, 8.2의 `ACKED` 트리밍, Kafka 파티션과의 차이, 저장·복제·안전성.
 - Redis, [Idempotent message processing](https://github.com/redis/docs/blob/main/content/develop/data-types/streams/idempotency.md): 8.6의 `IDMP`, `IDMPAUTO`, `IDMP-DURATION` 기본 100초와 `IDMP-MAXSIZE` 기본 100개, 재시작 후 같은 생산자 ID(2026-09-29 재검토).
 - Redis, [Persistence](https://github.com/redis/docs/blob/main/content/operate/oss_and_stack/management/persistence.md): `appendfsync` 정책별 유실 범위.
+- Redis 8.2, [redis.conf](https://raw.githubusercontent.com/redis/redis/8.2/redis.conf): 프로세스 장애와 OS·전원 장애의 차이, fsync 정책. 2026-09-29 원문 확인.
 - Redis, [Key eviction](https://github.com/redis/docs/blob/main/content/develop/reference/eviction/index.md): `maxmemory`와 퇴출 정책.

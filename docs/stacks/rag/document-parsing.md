@@ -27,7 +27,7 @@ PDF는 글자를 좌표에 찍은 그림에 가깝고, HWP는 한국 공공·기
 
 ## 원리
 
-- **PDF는 배치 정보다.** 글자와 좌표, 글꼴이 있을 뿐 문단, 표, 제목의 구조가 없다. 구조는 배치(layout) 분석으로 추정한다.
+- **PDF의 구조는 확인이 필요하다.** Tagged PDF에는 제목·표·읽기 순서 등의 논리 구조가 들어갈 수 있다. 태그가 없거나 잘못된 문서는 글자·좌표·글꼴 등으로 구조를 추정하고 결과를 확인한다.
 - **배치 분석 파이프라인.** docling 같은 도구는 형식별 백엔드로 읽고, 배치 분석, 읽기 순서, 표 구조 인식, OCR을 거쳐 통합 문서 표현(DoclingDocument)을 만든다. 이 표현에서 Markdown, HTML, 무손실 JSON으로 내보낸다.
 - **표 구조 인식.** 칸의 행·열 좌표와 병합 칸을 복원한다. PyMuPDF의 `find_tables`는 외부 의존성이나 기계학습 없이 표를 찾는다고 설명하고, docling은 모델 기반 표 구조 인식을 쓴다.
 - **변환 품질 신호.** docling은 2.34.0부터 문서 변환 품질을 등급(poor, fair, good, excellent)으로 알려주고, 문서는 사람 검토가 필요한 문서를 가려내는 데 쓰라고 한다.
@@ -40,6 +40,8 @@ PDF는 글자를 좌표에 찍은 그림에 가깝고, HWP는 한국 공공·기
 - 구조를 보존하면 청크가 제목과 표를 따라 나뉘어, 검색과 답변이 문맥을 잃지 않는다.
 - 출처(쪽, 표 번호, 개정일)를 보존하면 답변의 인용이 검증 가능해진다.
 - 권한과 삭제 상태를 문서 단위로 붙여 두면 검색 단계에서 걸러낼 수 있다.
+
+- **학습 실험.** 표·다단·스캔이 섞인 문서를 파싱한다. 원문 페이지와 추출 결과를 대조해 읽기 순서·셀 관계·출처 좌표의 오류를 기록하고, 그 오류가 검색 답변에 전달되는지 확인한다.
 
 ## 트레이드오프와 리스크
 
@@ -102,6 +104,8 @@ PDF는 글자를 좌표에 찍은 그림에 가깝고, HWP는 한국 공공·기
 - 원천 시스템이 구조화된 API를 제공하기 시작했다. 파일 파싱을 걷어낸다.
 
 ## 출처
+
+- W3C, [PDF Techniques](https://www.w3.org/TR/WCAG20-TECHS/pdf): 2026-09-29 확인. PDF의 논리 구조와 태그, 표 태그 검증의 필요성. 모든 PDF가 구조 없이 저장된다는 설명을 수정했다.
 
 - docling, [README](https://github.com/docling-project/docling/blob/main/README.md), [Supported formats](https://github.com/docling-project/docling/blob/main/docs/usage/supported_formats.md), [Architecture](https://github.com/docling-project/docling/blob/main/docs/concepts/architecture.md), [Confidence scores](https://github.com/docling-project/docling/blob/main/docs/concepts/confidence_scores.md): 지원 형식(HWP 없음), 배치·읽기 순서·표 구조·OCR, 통합 표현과 내보내기, 2.34.0의 품질 등급.
 - PyMuPDF, [Text recipes](https://github.com/pymupdf/PyMuPDF/blob/main/docs/recipes-text.rst): 기본 추출의 읽기 순서 문제, `find_tables`.

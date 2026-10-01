@@ -18,7 +18,7 @@ RabbitMQ는 메시지를 exchange에서 규칙(binding)에 따라 큐로 보내�
 
 ## 기준선의 한계
 
-- DB 테이블을 큐로 쓰면 작업자 수가 적을 때는 충분하다. 폴링 주기가 지연의 하한이 되고, 작업자가 늘면 폴링 쿼리가 DB 부하가 된다.
+- DB 작업 큐의 폴링은 도착 시점에 따라 대기를 만든다. 일정 간격과 균등한 도착을 가정하면 평균 대기는 간격의 절반이며, `LISTEN/NOTIFY`로 줄일 수 있다. 작업자가 늘 때의 조회·갱신 부하를 함께 측정한다.
 - 요청 스레드에서 비동기 실행(`@Async`, 스레드 풀)을 하면 프로세스가 죽을 때 작업이 사라진다.
 - 여러 종류의 작업자에게 라우팅하려면 DB 큐에서는 조건 컬럼과 쿼리가 늘어난다.
 
@@ -26,7 +26,7 @@ RabbitMQ는 메시지를 exchange에서 규칙(binding)에 따라 큐로 보내�
 
 - **exchange와 binding이 라우팅을 맡는다.** 발행자는 큐가 아니라 exchange로 보내고, 규칙(direct, topic, fanout, headers)이 받을 큐를 정한다. 발행 코드는 누가 받는지 모른다.
 - **큐는 소비하면 지운다.** 소비자가 확인한 메시지는 삭제된다. 큐는 FIFO이고, 한 채널에서 발행한 메시지는 발행 순서대로 들어간다.
-- **확인 창(prefetch).** `basic.qos`로 채널마다 확인되지 않은 전달 수의 상한을 둔다. 상한에 닿으면 확인이 올 때까지 더 보내지 않고, 0은 무제한이다.
+- **확인 창(prefetch).** RabbitMQ의 일반적인 `basic.qos` 설정(`global=false`)은 같은 채널에서도 새 소비자마다 별도 한도를 적용한다. 채널 공유 한도(`global=true`)와 구분한다. 0은 이 설정의 제한이 없다는 뜻이며, 큐 종류의 별도 상한은 확인한다.
 - **확인 전 연결이 끊기면 재전달.** 수동 확인에서 확인되지 않은 전달은 채널이나 연결이 닫히면 큐로 돌아간다. 재전달된 메시지에는 `redelivered` 표시가 붙고, 다른 소비자에게 갈 수 있다.
 - **발행 확인(publisher confirm).** 채널을 confirm 모드로 두면 브로커가 메시지마다 ack나 nack를 한 번씩 보낸다. 쿼럼 큐에서는 과반 복제본이 받은 뒤에 확인한다. AMQP 트랜잭션보다 가볍다(문서는 처리량이 250배 줄어드는 트랜잭션의 대안이라고 설명한다).
 - **쿼럼 큐.** Raft 합의로 복제되는 큐다. 4.0부터 클래식 큐 미러링은 제거됐고, 복제가 필요한 큐는 쿼럼 큐나 스트림을 쓴다.
@@ -41,6 +41,8 @@ RabbitMQ의 가치는 **메시지 단위의 책임 이전**이다.
 
 그래서 RabbitMQ가 맞는 상황은 "누가 이 일을 끝냈는가"가 중요한 작업 큐다.
 사건을 오래 보관하고 여러 소비자가 다시 읽어야 한다면 큐가 아니라 로그(Kafka, RabbitMQ 스트림)가 맞다.
+
+- **학습 실험.** 이미지 변환 작업을 빠른 소비자와 느린 소비자에 분배한다. prefetch를 바꾸며 미확인 메시지와 대기를 관찰하고, ack 전 종료와 반복 실패 메시지의 재전달·격리 경로를 확인한다.
 
 ## 트레이드오프와 리스크
 
@@ -74,7 +76,7 @@ DB에 쓰고 발행하는 코드에는 [Outbox](outbox-cdc.md)가 필요하다.
 - **확인은 비동기로 모아서 받는다.** 메시지마다 동기로 기다리면 처리량이 크게 준다. 순번과 `multiple` 플래그로 한꺼번에 확인되는 구간을 추적하고, 확인되지 않은 메시지만 재발행한다.
 - **prefetch는 처리 시간으로 정한다.** 빠르고 균일하면 크게, 느리거나 편차가 크면 작게 둔다. 1은 공정하지만 느리고, 0은 소비자 메모리를 무한히 쓴다.
 - **재시도는 지연을 두고, 한도를 두고, 끝은 격리한다.** 쿼럼 큐는 4.3부터 선형 백오프 지연 재시도를 지원한다(`delay = min(min_delay × delivery_count, max_delay)`). 그 이전 버전이나 지수 백오프가 필요하면 TTL을 건 대기 큐와 dead letter exchange로 되돌리는 구조를 쓴다. 전달 한도를 넘은 메시지는 dead letter로 보내고 사람이 본다.
-- **격리 큐의 유실을 막는다.** 쿼럼 큐의 dead letter를 `at-least-once`로 켜려면 `overflow=reject-publish`와 길이 한도가 함께 필요하다. 문서는 낮은 비용으로 격리 메시지를 보관하는 방법으로 스트림 하나를 dead letter 대상으로 두는 것을 권한다.
+- **격리 큐의 유실을 막는다.** 쿼럼 큐에 `dead-letter-strategy=at-least-once`, `overflow=reject-publish`, dead-letter exchange를 설정하고 필요한 `stream_queue` 기능이 켜져 있는지 확인한다. `max-length` 또는 `max-length-bytes`는 과도한 적체를 막기 위한 추가 권고이며 활성화 필수 조건은 아니다. 대상이 받지 못하면 원본 큐에 남아 자원을 쓰고 재전달 중복도 가능하다.
 - **느린 소비자는 소비자 타임아웃으로 풀어준다.** 4.3부터 쿼럼 큐는 확인이 늦은 전달을 큐로 되돌린다(설정 예시 30분, `consumer_timeout = 1800000`). 작업이 이보다 길면 쪼개거나, 메시지는 시작 신호로만 쓰고 진행 상태는 DB에 둔다.
 - **순서와 병렬성을 같이 원하면 키로 큐를 나눈다.** 일관 해시 exchange나 라우팅 키로 엔터티를 여러 큐에 나누고, 큐마다 단일 활성 소비자를 둔다. Kafka의 파티션을 흉내 내는 구조이며, 큐 수를 바꾸면 배치가 바뀐다는 한계도 같다.
 - **소비자는 멱등하게 만든다.** 재전달은 정상 동작이다. 메시지 ID를 유일 제약으로 가진 처리 기록에 먼저 쓰고 결과와 같은 트랜잭션으로 커밋한다.
@@ -109,7 +111,7 @@ DB에 쓰고 발행하는 코드에는 [Outbox](outbox-cdc.md)가 필요하다.
 
 - 지난 메시지를 다시 처리해야 하는 요구가 생겼다. 스트림이나 Kafka를 검토한다.
 - 같은 메시지를 받는 소비자 종류가 계속 늘어난다. fanout 큐가 늘어나는 대신 로그가 맞을 수 있다.
-- 작업량이 작고 업무 데이터와의 트랜잭션 일관성이 더 중요하다. DB 작업 큐로 줄인다.
+- 업무 저장과 작업 생성의 원자성이 중요해졌다. DB 작업 큐 또는 outbox와 브로커의 조합을 비교하고, 라우팅·ack·재전달을 활용할 이유도 함께 검토한다.
 - 적체가 수백만 건 단위로 자주 쌓인다.
 
 ## 출처
@@ -119,4 +121,5 @@ DB에 쓰고 발행하는 코드에는 [Outbox](outbox-cdc.md)가 필요하다.
 - RabbitMQ, [Queues](https://github.com/rabbitmq/rabbitmq-website/blob/main/docs/queues.md): 순서 보장과 순서가 깨지는 경우.
 - RabbitMQ, [Publishers](https://github.com/rabbitmq/rabbitmq-website/blob/main/docs/publishers/index.md): `mandatory` 기본값과 라우팅되지 않는 메시지.
 - RabbitMQ, [Alarms](https://github.com/rabbitmq/rabbitmq-website/blob/main/docs/alarms.md): 메모리·디스크 경고 때 발행 연결 차단.
+- RabbitMQ 4.3, [Consumer Prefetch](https://www.rabbitmq.com/docs/consumer-prefetch), [Quorum Queues](https://www.rabbitmq.com/docs/quorum-queues#activating-at-least-once-dead-lettering): 소비자별 한도와 채널 공유 한도, dead-letter 활성화 조건과 길이 제한 권고. 2026-09-29 원문 확인.
 - RabbitMQ, [RabbitMQ vs. Apache Kafka](https://github.com/rabbitmq/rabbitmq-website/blob/main/docs/compare/kafka.md): RabbitMQ 팀이 쓴 비교. 3.9부터 스트림, 3.11부터 super stream. 작성 주체를 감안해 읽는다.

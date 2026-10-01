@@ -25,7 +25,7 @@ Docker는 애플리케이션과 그 실행 환경(OS 패키지, 런타임, 설�
 
 ## 원리
 
-- **층과 캐시.** 명령 하나가 층 하나이고, 층이 바뀌면 뒤의 모든 층을 다시 만든다. 그래서 자주 바뀌는 소스를 뒤에, 드물게 바뀌는 의존성 설치를 앞에 둔다.
+- **층과 캐시.** `RUN`, `COPY`, `ADD` 등은 파일 시스템 층을 만들고, `ENV` 등은 이미지 설정을 바꾼다. 캐시가 무효화되면 그 결과에 의존하는 후속 빌드도 다시 수행하므로, 자주 바뀌는 소스를 의존성 설치보다 뒤에 둔다.
 - **다단계 빌드.** 빌드 도구가 있는 단계에서 산출물을 만들고, 실행 단계에는 산출물만 복사한다. 최종 이미지에 컴파일러와 빌드 캐시가 남지 않는다.
 - **태그는 바뀐다.** 문서는 이미지 태그가 가변이라 같은 태그가 시간이 지나면 다른 이미지를 가리킬 수 있다고 설명한다. 다이제스트(`@sha256:...`)로 고정하면 바뀌지 않지만, 자동 보안 패치를 받지 못한다.
 - **빌드 비밀.** 문서는 빌드 인자와 환경 변수가 최종 이미지에 남으므로 비밀을 넘기는 데 부적절하고, 비밀 마운트나 SSH 마운트를 쓰라고 한다.
@@ -40,6 +40,8 @@ Docker의 가치는 **빌드한 것과 실행하는 것이 같다는 보장**이
 - 되돌리기가 이전 이미지로 다시 실행하는 것이다. 런타임과 OS 패키지까지 함께 되돌아간다.
 - 테스트에서 실제 DB와 브로커를 컨테이너로 띄운다([Testcontainers](../verify/testcontainers.md)).
 - 오케스트레이터([Kubernetes](kubernetes.md))와 CI([GitHub Actions](github-actions.md))의 공통 단위가 된다.
+
+- **학습 실험.** 같은 앱을 다단계 이미지로 만들고 의존성 변경과 소스 변경의 빌드 캐시를 비교한다. docker stop과 메모리 제한을 시험해 종료 신호·유예·프로세스 종료 결과를 확인한다.
 
 ## 트레이드오프와 리스크
 
@@ -100,6 +102,8 @@ Docker의 가치는 **빌드한 것과 실행하는 것이 같다는 보장**이
 - 빌드 시간이 개발 흐름을 막는다. 층 구조와 캐시 백엔드를 다시 설계한다.
 
 ## 출처
+
+- Docker, [Build cache invalidation](https://docs.docker.com/build/cache/invalidation/): 2026-09-29 본문 확인. 명령과 입력에 따른 캐시 무효화와 후속 단계의 재실행.
 
 - Docker 문서, [Building best practices](https://github.com/docker/docs/blob/main/content/manuals/build/building/best-practices.md): 다단계 빌드, 태그 가변성과 다이제스트 고정, 진입점의 `exec`와 PID 1.
 - Docker 문서, [Build secrets](https://github.com/docker/docs/blob/main/content/manuals/build/building/secrets.md): 빌드 인자·환경 변수의 비밀 잔존, 비밀 마운트.

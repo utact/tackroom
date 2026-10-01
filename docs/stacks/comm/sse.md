@@ -18,7 +18,8 @@ SSE(Server-Sent Events)는 HTTP 응답 하나를 열어 둔 채 서버가 `text/
 ## 기준선의 한계
 
 기준선은 폴링이다. 요청 수가 클라이언트 수 ÷ 간격이고, 지연이 간격의 절반이다.
-롱 폴링은 지연을 줄이지만, 응답마다 연결을 다시 열고 재요청 사이의 틈을 직접 메워야 한다.
+롱 폴링은 지연을 줄이지만, 응답마다 새 HTTP 요청을 보내고 재요청 사이의 틈을 메워야 한다.
+HTTP 연결 자체는 keep-alive나 다중화로 재사용할 수 있다.
 
 ## 원리
 
@@ -36,6 +37,8 @@ SSE의 가치는 **푸시의 지연과 HTTP의 단순함을 함께 얻는 것**�
 - 평범한 HTTP라 인증, 로깅, 프록시, 압축을 그대로 쓴다. 별도 프로토콜 전환이 없다.
 - 재연결과 이어받기가 표준에 들어 있어, 클라이언트 쪽 복구 코드를 거의 쓰지 않는다.
 - 클라이언트 → 서버 방향은 평범한 POST로 두므로, 쓰기 경로는 기존 API의 검증·멱등 처리를 그대로 쓴다.
+
+- **학습 실험.** 작업 진행률을 EventSource로 받는다. 재연결뿐 아니라 브라우저 연결을 유지한 내부 전파 단절과 재생·구독 사이의 이벤트를 주입해 누락을 센다. 내구성 원천과 중복 제거의 역할을 설명한다.
 
 ## 트레이드오프와 리스크
 
@@ -57,9 +60,10 @@ SSE의 가치는 **푸시의 지연과 HTTP의 단순함을 함께 얻는 것**�
 
 ## 깊이 있는 활용
 
-- **이벤트 ID를 저장소의 순번으로 쓴다.** 방별 메시지 순번이나 사용자별 알림 순번을 `id`로 보낸다. 재연결 때 `Last-Event-ID` 이후를 DB나 [Redis Streams](../async/redis-streams.md), [Kafka](../async/kafka.md)에서 먼저 보내고 실시간 이벤트를 이으면 누락이 없다.
+- **복구 위치와 실시간 구독을 함께 설계한다.** `Last-Event-ID` 이후 기록을 먼저 읽고 나서 구독하면 그 사이의 사건을 놓칠 수 있다. 구독을 먼저 열어 임시 보관한 뒤 확정된 조회 경계까지 재생하고 중복을 제거하거나, 과거와 새 사건을 같은 내구성 로그의 소비 위치로 읽는다. 보관 기간 밖의 커서는 전체 동기화로 복구한다.
+- **ID의 순서를 확인한다.** DB 시퀀스의 할당 순서는 커밋 순서를 보장하지 않는다. 작은 ID의 트랜잭션이 늦게 커밋되면 `id > 마지막값` 조회에서 빠질 수 있다. 방별 직렬화나 커밋된 로그의 위치처럼 가시성 순서를 보장하는 방법을 정한다. 여러 파티션의 위치를 하나의 숫자로 압축하지 않는다.
 - **보내기는 POST, 받기는 SSE로 나눈다.** 채팅 메시지 전송은 멱등 키가 있는 POST로 받아 DB에 저장하고([타임아웃·재시도·멱등 키](../api/timeout-retry-idempotency.md)), 저장된 메시지를 SSE로 퍼뜨린다. 쓰기와 전달의 책임이 분리된다.
-- **인스턴스 간 전파를 둔다.** 이벤트가 생기면 Redis Pub/Sub이나 브로커로 모든 인스턴스에 알리고, 각 인스턴스는 자기에게 연결된 클라이언트에게 보낸다. 전파 경로에서 메시지를 놓쳐도 클라이언트가 재연결 때 저장소에서 메우므로, 전파는 최선 노력이어도 된다.
+- **전파 누락을 재연결에만 맡기지 않는다.** Redis Pub/Sub가 끊겨도 브라우저 SSE는 살아 있을 수 있다. 중간 사건을 놓친 뒤 더 큰 ID를 받으면 재연결 커서도 이미 앞서 간다. 내구성 로그 소비, 연속 순번의 공백 감지, 주기적 저장소 대사 중 요구에 맞는 방법을 둔다. 마지막 사건 하나의 누락도 다음 사건 없이 발견할 수 있어야 한다.
 - **주석으로 연결을 살린다.** 경로 위 가장 짧은 유휴 타임아웃보다 짧은 간격으로 `:` 주석 줄을 보낸다.
 - **SSE 경로만 프록시 설정을 바꾼다.** 해당 경로에서 버퍼링을 끄고(`proxy_buffering off` 또는 응답 헤더 `X-Accel-Buffering: no`), 읽기 타임아웃을 주석 간격보다 넉넉히 둔다([Nginx와 TLS](../ops/nginx-tls.md)).
 - **HTTP/2로 서빙한다.** 연결 6개 제한을 피한다.
@@ -79,6 +83,8 @@ SSE의 가치는 **푸시의 지연과 HTTP의 단순함을 함께 얻는 것**�
 - **프록시 타임아웃과 버퍼링.** nginx 기본 설정 뒤에서 이벤트 없이 60초를 두어 끊기는 것, 버퍼링 때문에 이벤트가 모여 오는 것을 본다.
 - **연결 수 제한.** HTTP/1.1에서 같은 도메인 탭을 7개 열어 요청이 막히는 것을 본다.
 - **인스턴스 간 전달.** 인스턴스 둘에 클라이언트를 나눠 연결하고, 전파 경로 없이 이벤트를 보내 절반만 받는 것을 확인한다.
+- **연결이 살아 있는 누락.** 브라우저 연결은 유지한 채 내부 전파만 끊는다. 중간 사건과 마지막 사건을 각각 빠뜨리고 대사로 복구되는지 본다. 과거 조회와 구독 전환 사이에도 사건을 넣는다.
+- **커밋 순서 역전.** 두 트랜잭션에 작은 ID와 큰 ID를 차례로 할당하고 큰 ID부터 커밋한다. 커서를 전진시킨 뒤 작은 ID를 커밋해 누락을 확인하고, 선택한 순서 보장 방식으로 반복한다.
 
 ## 측정과 검증
 
@@ -96,5 +102,7 @@ SSE의 가치는 **푸시의 지연과 HTTP의 단순함을 함께 얻는 것**�
 
 - MDN, [Using server-sent events](https://github.com/mdn/content/blob/main/files/en-us/web/api/server-sent_events/using_server-sent_events/index.md): `text/event-stream`, 줄바꿈 두 번으로 끝나는 메시지, 필드, 주석과 연결 유지, `retry`, HTTP/2가 아닐 때 연결 6개 제한.
 - MDN, [EventSource()](https://github.com/mdn/content/blob/main/files/en-us/web/api/eventsource/eventsource/index.md): 옵션은 `withCredentials`뿐.
-- WHATWG, [HTML Server-sent events](https://html.spec.whatwg.org/multipage/server-sent-events.html): 재연결 요청의 `Last-Event-ID` 헤더. 검색 요약으로 확인했다.
+- WHATWG, [HTML Server-sent events](https://html.spec.whatwg.org/multipage/server-sent-events.html): 재연결 요청의 `Last-Event-ID` 헤더. 2026-09-29 원문 재확인. 애플리케이션의 저장·공백 복구까지 보장하는 규약은 아니다.
+- Redis, [Pub/Sub](https://redis.io/docs/latest/develop/pubsub/): at-most-once 전달과 구독 중단 시 유실. 2026-09-29 원문 확인.
+- PostgreSQL, [Sequence Manipulation Functions](https://www.postgresql.org/docs/18/functions-sequence.html): 시퀀스와 트랜잭션의 관계. 2026-09-29 원문 확인. 구독 전환과 순서 역전의 재현은 이 카드의 설계 검토이며 아직 실행하지 않았다.
 - nginx 문서, [ngx_http_proxy_module](https://github.com/nginx/nginx.org/blob/main/xml/en/docs/http/ngx_http_proxy_module.xml): 읽기 타임아웃 60초, 버퍼링 기본 on, `X-Accel-Buffering`.

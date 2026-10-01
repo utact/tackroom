@@ -1,6 +1,6 @@
 # LLM API와 SDK
 
-확인: 2026-09-29 재검토. 최초 조사는 2026-09-28, OpenAI Python SDK(openai/openai-python, main)와 Google GenAI SDK(googleapis/python-genai, main)의 README, Claude API 공식 참조 자료(Claude Code에 포함된 claude-api 스킬, 2026-09-25 기준) 기준. OpenAI와 Gemini의 캐시 할인율은 검색 요약으로 확인했다.
+확인: 2026-10-01 캐시 조건·수치를 각 벤더의 공식 본문에서 재확인했다. SDK와 나머지 API 항목은 2026-09-28 최초 조사 및 2026-09-29 재검토 기준이며, 항목별 확인 범위는 출처에 적었다.
 
 ## 요약
 
@@ -27,13 +27,13 @@ OpenAI, Anthropic, Google은 각자 공식 SDK로 LLM API를 제공한다.
 ## 원리
 
 - **재시도와 타임아웃 기본값.** OpenAI와 Anthropic SDK는 연결 오류, 408, 409, 429, 5xx를 기본 2회 재시도하고, 기본 타임아웃은 10분이다.
-  - 타임아웃도 재시도되므로 최악의 대기는 타임아웃 × 3이다.
+  - 타임아웃도 재시도될 수 있지만 `타임아웃 × 3`은 전체 대기의 상한이 아니다. 백오프가 추가되고, HTTPX 같은 전송 계층의 읽기 타임아웃은 청크 사이의 대기 한도다. 사용 중인 SDK·전송 계층 버전을 확인하고, 전체 업무 기한과 취소를 별도로 둔다.
   - OpenAI SDK는 스트림을 읽는 중의 끊김은 재시도하지 않는다.
-- **프롬프트 캐시.** 같은 앞부분(접두어)을 다시 보내면 계산을 재사용해 비용과 지연을 줄인다. 세 벤더 모두 접두어가 바이트 단위로 같아야 적중한다.
-  - OpenAI: 1,024토큰 이상에서 자동으로 적용된다. 설정이 필요 없다.
-  - Anthropic: `cache_control`로 캐시 지점을 명시하거나 자동 캐시를 켠다. 쓰기는 입력 가격의 1.25배(5분 수명)나 2배(1시간 수명)이고, 읽을 때마다 수명이 갱신된다.
-  - 읽기 가격은 대부분 입력의 약 0.1배지만 모델마다 다르다(최신 상위 모델 일부는 0.05배나 0.025배). 최소 캐시 길이도 모델마다 512~4,096토큰으로 달라, 짧은 접두어는 오류 없이 캐시되지 않는다. 모델을 바꾸면 손익을 다시 계산한다.
-  - Google: 암묵적 캐시가 자동으로 적용되고, 명시적 캐시는 `client.caches`로 수명(ttl)을 정해 만든다.
+- **프롬프트 캐시.** 재사용 가능한 입력의 계산을 저장한다. 접두 내용뿐 아니라 모델·도구·요청 설정과 수명이 적중에 영향을 준다. 의미가 비슷한 요청의 결과를 재사용하는 응답 캐시와 구분한다.
+  - OpenAI(2026-10-01): GPT-5.6 이후는 최소 1,024토큰이며 암묵적·명시적 캐시를 지원한다. 기본 입력 가격 대비 쓰기 1.25배, 읽기 대부분 0.1배이며 GPT-6.1 Sol은 0.05배다. 이전 세대는 최소 길이·지원 방식이 다르다.
+  - Anthropic(2026-10-01, Claude API): `cache_control`로 지점이나 자동 캐시를 설정한다. 쓰기는 5분 수명 1.25배, 1시간 수명 2배다. 읽기는 기본 0.1배, Opus 5.5는 0.05배, Fable 5.1·Mythos 5.1은 0.025배다. 적중 시 수명이 갱신된다.
+  - Anthropic의 최소 길이는 예를 들어 Sonnet 5.5·Opus 5.5가 512토큰, Sonnet 4.6이 1,024토큰, Haiku 4.5가 4,096토큰이다. 최소 길이 미만은 오류 없이 미적중하므로 usage 필드로 확인한다.
+  - Google(2026-10-01): Gemini 2.5 이후는 암묵적 캐시가 기본 활성화된다. 최소 길이는 2.5 Flash·Pro가 2,048토큰, 3.8 Flash가 4,096토큰이다. 명시적 캐시는 `generateContent`에서 사용하며 Interactions API는 암묵적 캐시만 지원한다.
 - **구조화 출력.** 응답을 JSON 스키마로 제약해, 자유 텍스트를 파싱하지 않는다. Anthropic은 `output_config.format`과 도구의 `strict: true`, Google SDK는 `response_json_schema`, OpenAI는 Structured Outputs를 쓴다.
 - **도구 호출.** 모델이 함수 이름과 인자를 JSON으로 내고, 애플리케이션이 실행해 결과를 돌려준다. 실행 루프와 승인은 애플리케이션 몫이다.
 - **일괄 처리.** 세 벤더 모두 비동기 일괄 API를 약 50% 가격으로 제공한다. Anthropic은 일괄 하나에 최대 10만 요청이고, 대부분 1시간, 최대 24시간 안에 끝난다. 결과 순서가 보장되지 않아 요청 ID로 맞춘다.
@@ -46,7 +46,9 @@ OpenAI, Anthropic, Google은 각자 공식 SDK로 LLM API를 제공한다.
 
 - 재시도, 타임아웃, 스트리밍, 타입 있는 오류를 직접 만들지 않는다.
 - 캐시와 일괄 처리로 같은 품질을 더 싸게 얻는다. 반복 접두어가 큰 작업은 비용이 크게 준다.
-- 구조화 출력으로 형식 오류를 없앤다.
+- 지원되는 스키마를 사용한 구조화 출력으로 형식 오류를 줄인다. 거절·중단·API 오류와 내용의 사실성은 별도로 처리한다.
+
+- **학습 실험.** 동일한 작은 과제를 스트리밍·구조화 출력·도구 호출로 실행한다. 가짜 서버의 429와 느린 청크로 재시도·전체 기한을 관찰하고, 출력 형식 준수와 내용 정확성을 따로 판정한다.
 
 ## 트레이드오프와 리스크
 
@@ -105,8 +107,10 @@ OpenAI, Anthropic, Google은 각자 공식 SDK로 LLM API를 제공한다.
 
 ## 출처
 
+- HTTPX, [Timeouts](https://www.python-httpx.org/advanced/timeouts/): 2026-09-29 본문 확인. 연결·읽기·쓰기·풀 대기 한도와 전체 요청 기한의 차이를 확인했다. 각 SDK 버전의 전송 계층과 재시도는 별도 확인 대상이다.
+
 - OpenAI, [openai-python README](https://github.com/openai/openai-python/blob/main/README.md): Responses API가 주 API, 기본 2회 재시도 대상, 기본 타임아웃 10분, 스트림 소비는 재시도하지 않음.
 - Google, [python-genai README](https://github.com/googleapis/python-genai/blob/main/README.md): `response_json_schema`, 캐시(`client.caches`, ttl), 일괄 작업(`client.batches`).
-- Anthropic, Claude API 참조 자료(Claude Code의 claude-api 스킬): 캐시 쓰기 1.25배·2배와 모델별 읽기 배율, 모델별 최소 캐시 길이(2026-09-29 재검토), 수명 갱신, 구조화 출력(`output_config.format`, `strict`), 일괄 처리 50%와 10만 요청·24시간, SDK 기본 재시도와 타임아웃.
-- OpenAI, [Prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching): 1,024토큰 이상 자동 적용. 검색 요약으로 확인했다.
-- Google, [Gemini 2.5 implicit caching](https://developers.googleblog.com/en/gemini-2-5-models-now-support-implicit-caching/): 암묵적 캐시. 할인율은 검색 요약으로 확인했다.
+- Anthropic, [Prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching#pricing): 2026-10-01 본문 재확인. Pricing의 쓰기·읽기 배율과 예외, Cache limitations의 모델별 최소 길이, 적중 시 수명 갱신. 다른 API 동작의 근거로 확대하지 않는다.
+- OpenAI, [Prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching#how-caching-works): 2026-10-01 본문 재확인. GPT-5.6 이후 최소 길이·지원 방식·쓰기 요금과 GPT-6.1 Sol의 읽기 배율 예외.
+- Google, [Context caching](https://ai.google.dev/gemini-api/docs/caching#implicit-caching): 2026-10-01 본문 재확인. 모델별 최소 길이와 Interactions API의 명시적 캐시 미지원.

@@ -28,7 +28,7 @@ OpenTelemetry는 트레이스, 메트릭, 로그를 만드는 API·SDK와 전송
 - **신호 셋.**
   - 트레이스: 스팬(작업 단위, 시작·끝·속성)의 나무다.
   - 메트릭: 집계된 수치(카운터, 게이지, 히스토그램)다.
-  - 로그: 타임스탬프가 있는 기록이다. SDK를 거치면 기존 로그가 트레이스와 자동으로 이어진다.
+  - 로그: 타임스탬프가 있는 기록이다. 지원되는 로그 브리지·계측과 활성 트레이스 문맥이 있어야 로그에 trace ID·span ID를 연결할 수 있다. SDK를 추가해도 기존 로그 전체가 자동으로 연결되는 것은 아니다.
 - **문맥 전파.** A가 B를 부를 때 trace ID와 span ID를 넘겨 B의 스팬이 이를 부모로 삼는다. HTTP의 표준은 W3C Trace Context(`traceparent`)이고, 이 전파가 메트릭과 로그를 잇는 기반이다.
 - **semantic conventions.** HTTP, DB, 메시징 같은 작업의 속성 이름을 표준화한다. 모든 서비스와 라이브러리가 같은 이름을 쓰면 대시보드와 질의가 공통이 된다.
 - **자동 계측과 코드 계측.** Java 에이전트 같은 무코드 계측은 흔한 라이브러리(HTTP 서버·클라이언트, JDBC, Kafka 클라이언트)의 스팬을 자동으로 만든다. 업무 단위 스팬과 속성은 코드로 더한다.
@@ -42,8 +42,10 @@ OpenTelemetry는 트레이스, 메트릭, 로그를 만드는 API·SDK와 전송
 OpenTelemetry의 가치는 **요청 하나의 인과 사슬을 서비스 경계 너머까지 따라가는 것**, 그리고 그 계측을 벤더에서 분리하는 것이다.
 
 - 느린 요청의 트레이스에서 시간이 어느 스팬에 쓰였는지 바로 본다. 추측이 아니라 경로로 병목을 찾는다.
-- 로그와 메트릭에 trace ID가 붙어, 경보 → 느린 트레이스 → 그 요청의 로그로 이동한다.
+- 로그의 trace ID와 메트릭의 exemplar 등을 지원하는 수집·저장·조회 구성을 갖추면, 경보에서 관련 트레이스와 로그를 찾을 수 있다. 모든 메트릭 시계열에 trace ID 레이블을 추가하는 방식은 높은 카디널리티를 만든다.
 - 계측 코드를 한 번 쓰면 백엔드(Jaeger, Tempo, 상용 서비스)를 바꿔도 된다.
+
+- **학습 실험.** HTTP 요청이 큐 작업으로 이어지는 기능에 트레이스를 붙인다. 문맥 전파를 끊었다가 복구해 스팬 연결을 확인하고, 샘플링과 수집 실패 때문에 보이지 않는 요청도 계수한다.
 
 ## 트레이드오프와 리스크
 
@@ -100,6 +102,8 @@ OpenTelemetry의 가치는 **요청 하나의 인과 사슬을 서비스 경계 
 - 관측 비용이 서비스 비용에 비해 크다. 표본 추출과 속성을 다시 설계한다.
 
 ## 출처
+
+- OpenTelemetry, [Logging](https://opentelemetry.io/docs/specs/otel/logs/): 2026-09-29 본문 확인. 기존 로깅과의 연결, 문맥과 수집 방식에 따른 상관관계.
 
 - OpenTelemetry 문서, [Sampling](https://github.com/open-telemetry/opentelemetry.io/blob/main/content/en/docs/concepts/sampling/index.md): 헤드·테일 샘플링, 일관 확률 샘플링, 테일 샘플링의 세 가지 단점.
 - OpenTelemetry 문서, [Context propagation](https://github.com/open-telemetry/opentelemetry.io/blob/main/content/en/docs/concepts/context-propagation/index.md): 신호 간 연결과 서비스 간 인과 정보.

@@ -40,6 +40,8 @@ Outbox의 가치는 **"저장했다"와 "알렸다"를 같은 사실로 만드�
 CDC가 폴링보다 나은 점은 폴링 쿼리 부하와 폴링 지연이 없고, 커밋 순서를 정확히 따른다는 것이다.
 폴링이 CDC보다 나은 점은 새 인프라(Kafka Connect, Debezium) 없이 애플리케이션 코드만으로 된다는 것이다.
 
+- **학습 실험.** 주문 저장과 알림 발행 사이에 프로세스를 종료한다. 직접 이중 쓰기와 outbox를 비교하고, 중복 발행뿐 아니라 로그 보존을 넘긴 중단에서 무엇을 복구 원천으로 쓸지도 확인한다.
+
 ## 트레이드오프와 리스크
 
 - **중복은 없앨 수 없다.** Debezium도 장애 복구 중에는 중복을 낼 수 있다고 적고, 폴링 발행도 발행 후 표시 전에 죽으면 다시 보낸다. 소비자 멱등 처리가 필수다.
@@ -65,8 +67,8 @@ CDC가 폴링보다 나은 점은 폴링 쿼리 부하와 폴링 지연이 없�
 
 - **outbox 행에 사건 ID를 두고 헤더로 보낸다.** Debezium outbox 라우터가 `id` 컬럼을 헤더로 보내고, 소비자는 이 ID로 중복을 거른다. 폴링 발행도 같은 ID를 쓴다.
 - **집계 ID를 메시지 키로 쓴다.** 같은 주문의 사건이 같은 파티션으로 가서 순서가 유지된다. 커밋 순서를 그대로 따르는 CDC와 결합하면 집계 단위 순서가 보장된다.
-- **outbox는 쓰자마자 지워도 된다(CDC).** 변경 로그에 `INSERT`가 남으므로 같은 트랜잭션에서 넣고 지워 테이블을 비워 둔다. 대신 outbox로 과거 사건을 조회할 수 없다.
-- **슬롯을 감시하고 상한을 둔다.** `restart_lsn`과 현재 LSN의 차이에 경보를 건다. `max_slot_wal_keep_size`는 DB를 지키는 대신 커넥터를 스냅샷부터 다시 하게 하므로, 무엇을 잃을지 미리 정한다.
+- **outbox 삭제는 복구 원천과 함께 정한다(CDC).** 필요한 변경 로그가 남아 있고 커넥터가 해당 변경을 처리한다면 삽입 후 삭제로 테이블을 비울 수 있다. 하지만 행과 WAL을 모두 잃으면 새 스냅샷으로 과거 사건을 복원할 수 없다. 전달 완료 확인, 보관 기간, 별도 사건 보관소나 재구성 절차를 정한 뒤 삭제한다.
+- **슬롯을 감시하고 상한을 둔다.** `restart_lsn`과 현재 LSN의 차이에 경보를 건다. `max_slot_wal_keep_size`는 디스크를 보호하지만 필요한 WAL이 제거되면 슬롯을 정상적으로 이어 읽을 수 없다. 슬롯·커넥터 복구와 스냅샷만으로 돌아오지 않는 사건의 대사 절차를 함께 정한다.
 - **폴링 발행은 발행 확인 후에 표시한다.** 브로커의 발행 확인(Kafka `acks=all`, RabbitMQ publisher confirm)을 받은 뒤에만 `published_at`을 기록한다. 순서가 필요하면 릴레이를 하나만 활성으로 두거나 집계 ID로 릴레이를 나눈다.
 - **사건 스키마를 버전 관리한다.** payload에 스키마 버전을 넣고, 소비자가 모르는 필드를 무시하게 한다. 필드 삭제와 의미 변경은 새 사건 종류로 한다.
 
@@ -85,6 +87,7 @@ CDC가 폴링보다 나은 점은 폴링 쿼리 부하와 폴링 지연이 없�
 - **브로커 장애.** 브로커를 멈춘 동안 요청을 계속 보내고, 요청이 성공하는지, 복구 후 쌓인 사건이 순서대로 나가는지 본다.
 - **릴레이 중복.** 폴링 릴레이가 발행 확인을 받은 직후, 표시 전에 죽이고 중복 발행과 소비자의 중복 처리를 본다.
 - **커넥터 정지(CDC).** Debezium을 멈추고 DB 쓰기를 계속해 `pg_wal` 크기와 슬롯 지연이 커지는 것을 본다. 재시작 후 중복 사건 수를 센다.
+- **복구 원천 상실.** 별도 실험 DB에서 outbox 삭제와 필요한 WAL 제거가 겹친 상황을 만들고, 스냅샷에 없는 사건을 확인한다. 보관소 또는 재구성 절차로 복구한 뒤 사건 ID를 대조하고 손실 범위와 복구 시간을 기록한다.
 - 재현은 [Testcontainers](../verify/testcontainers.md)로 PostgreSQL, Kafka, Debezium 컨테이너를 함께 띄운다.
 
 ## 측정과 검증
@@ -98,8 +101,8 @@ CDC가 폴링보다 나은 점은 폴링 쿼리 부하와 폴링 지연이 없�
 
 ## 재검토 조건
 
-- 사건을 받는 쪽이 모두 같은 애플리케이션 안으로 줄었다. DB 작업 큐로 충분하다.
-- CDC 운영 부담이 사건 양에 비해 크다. 폴링 발행으로 줄인다.
+- 외부 사건 발행이 사라지고 같은 DB의 작업자만 남았다. 업무 변경과 작업 생성을 같은 트랜잭션으로 처리할 수 있으면 DB 작업 큐로 단순화한다.
+- CDC 장애 복구·로그 보관 부담이 크고 폴링으로 전달 지연과 DB 부하 목표를 맞출 수 있다. 폴링 발행으로 전환한다.
 - 폴링 부하가 업무 쿼리에 영향을 준다. CDC로 옮긴다.
 
 ## 출처
@@ -108,4 +111,5 @@ CDC가 폴링보다 나은 점은 폴링 쿼리 부하와 폴링 지연이 없�
 - Debezium, [PostgreSQL connector](https://github.com/debezium/debezium/blob/main/documentation/modules/ROOT/pages/connectors/postgresql.adoc): 장애 복구 중 중복 가능성, 슬롯의 WAL 보존, WAL 디스크 사용 급증과 heartbeat.
 - PostgreSQL, [Logical Decoding Concepts](https://github.com/postgres/postgres/blob/master/doc/src/sgml/logicaldecoding.sgml): 복제 슬롯이 연결 없이도 WAL과 카탈로그 행 제거를 막고 극단적으로 DB 정지까지 갈 수 있다는 경고.
 - PostgreSQL, [Server Configuration](https://github.com/postgres/postgres/blob/master/doc/src/sgml/config.sgml): `max_slot_wal_keep_size` 기본값 -1.
+- PostgreSQL 18, [Logical Decoding Concepts](https://www.postgresql.org/docs/18/logicaldecoding-explanation.html): 슬롯의 재전송과 필요한 WAL 제거 시 이어받기의 제약. 2026-09-29 원문 확인. 삭제된 사건의 복구 원천에 관한 결론은 이 조건을 적용한 설계 검토다.
 - Apache Kafka, [Design](https://github.com/apache/kafka/blob/4.3.1/docs/design/design.md): 외부 시스템으로의 exactly-once와 2단계 커밋의 한계.

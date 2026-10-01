@@ -43,13 +43,15 @@ Spring Batch의 가치는 **대량 처리를 "다시 실행해도 안전한" 단
 - 불량 레코드를 건너뛰고 기록해 나머지를 끝까지 처리한다.
 - 실행 이력과 건수가 메타데이터로 남아, 운영자가 무엇이 언제 몇 건 처리됐는지 조회한다.
 
+- **학습 실험.** CSV 적재 중 특정 청크에서 실패시킨다. 같은 식별값의 재시작과 새 식별값의 재처리를 비교해 읽기 위치, 커밋된 행, skip 기록이 어떻게 달라지는지 확인한다.
+
 ## 트레이드오프와 리스크
 
 - **재시작은 저장소가 있어야 한다.** 기본 resourceless 저장소로는 재시작 의미론이 없다. JDBC 저장소를 켜야 "재시작 가능한 배치"다.
 - **재시작 위치는 reader의 정렬을 전제로 한다.** 페이징 reader는 정렬 키에 유일 제약이 있어야 실행 사이에 데이터를 잃지 않는다고 문서가 적는다. 정렬이 불안정하면 재시작 때 건너뛰거나 중복한다.
 - **청크 단위 커밋은 청크 안의 부분 실패를 다시 처리한다.** 청크 쓰기 중 실패하면 그 청크의 항목이 다시 처리된다. 외부 부작용(메일 발송, 외부 API)은 두 번 일어날 수 있다.
 - **처리 중 데이터가 바뀐다.** 긴 배치 동안 원본이 바뀌면 오프셋 기반 페이징은 행을 건너뛰거나 두 번 읽는다.
-- **식별 파라미터 설계가 운영 방식을 정한다.** 같은 날짜로 성공한 JobInstance는 다시 실행되지 않는다(이미 완료). 재실행을 원하면 식별되지 않는 파라미터를 쓰거나 새 식별값이 필요하다.
+- **식별 파라미터 설계가 운영 방식을 정한다.** 완료한 JobInstance는 다시 실행할 수 없다. 비식별 파라미터만 바꿔도 같은 인스턴스이므로 해결되지 않는다. 완료된 날짜를 재처리하려면 업무 날짜에 재처리 버전 같은 새 식별값을 더해 새 인스턴스를 만든다. 실패한 작업의 재시작은 같은 식별값으로 수행하며, restartable 설정과 상태를 확인한다.
 - **메타데이터 테이블과 버전 이행.** 메이저 버전마다 스키마와 API가 바뀐다. 6.0은 XML 네임스페이스와 Jackson 2 지원을 폐기 예정으로 두었다.
 - **프레임워크 개념의 학습 비용.** Job, Step, Chunk, ItemStream, ExecutionContext, 리스너, 파티셔닝을 이해해야 제대로 쓴다.
 
@@ -83,7 +85,7 @@ Spring Batch의 가치는 **대량 처리를 "다시 실행해도 안전한" 단
 - 전체를 `@Transactional` 메서드 하나로 처리한다.
 - 불량 레코드를 만나면 예외를 잡아 로그만 남기고 계속한다. 무엇을 건너뛰었는지 기록이 없다.
 - 오프셋 페이징(`LIMIT/OFFSET`)으로 읽으면서 같은 테이블을 갱신한다.
-- 재실행을 위해 식별 파라미터에 현재 시각을 넣는다. 같은 날짜가 두 번 성공할 수 있다.
+- 실패 지점부터 재시작하려는데 매번 현재 시각을 새 식별값으로 넣는다. 새 인스턴스가 만들어져 재시작 의미가 사라진다. 완료한 날짜의 의도적인 재처리는 별도의 식별값과 중복 반영 방지 정책으로 표현한다.
 - 6.0이나 Spring Boot 4로 올린 뒤 메타데이터 테이블이 비어 있는데 재시작이 되는 줄 안다.
 
 ## 실패 재현
@@ -106,9 +108,11 @@ Spring Batch의 가치는 **대량 처리를 "다시 실행해도 안전한" 단
 
 - 데이터가 커져 한 노드로 시간 안에 끝나지 않는다. 분산 처리 엔진을 검토한다.
 - 입력이 연속적으로 들어와 배치 주기가 지연 요구를 맞추지 못한다. 스트림 처리로 옮긴다.
-- 작업이 작아 프레임워크 설정이 작업보다 크다. 처리 표시 컬럼 방식으로 단순화한다.
+- 설정 부담이 커졌다. 처리 표시 컬럼 방식과 재시작·청크·실행 이력을 비교하고, 배치 처리 원리를 경험할 목표에 맞게 범위를 조정한다.
 
 ## 출처
+
+- Spring Batch, [JobInstance API](https://docs.spring.io/spring-batch/reference/api/org/springframework/batch/core/job/JobInstance.html): 2026-09-29 본문 확인. 성공한 인스턴스의 생명주기 종료와 재실행 거부를 확인했다. 프로젝트에서 재처리 실험을 실행한 것은 아니다.
 
 - Spring Batch 6.0.5, [What's new in Spring Batch 6](https://github.com/spring-projects/spring-batch/blob/v6.0.5/spring-batch-docs/modules/ROOT/pages/whatsnew.adoc): resourceless 기본 저장소, `@EnableJdbcJobRepository`, `ChunkOrientedStep`, 생산자-소비자 동시성, `JobOperator.recover`, 폐기 예정 목록.
 - Spring Boot 문서, [Spring Batch](https://docs.spring.io/spring-boot/reference/io/spring-batch.html)와 Spring 블로그 [Spring Boot 4.1 and Spring Batch](https://spring.io/blog/2026/06/21/spring-boot-41-and-spring-batch/): `spring-boot-starter-batch`는 resourceless, JDBC는 `spring-boot-starter-batch-jdbc`. 검색 요약으로 확인했다(2026-09-29 재검토).
