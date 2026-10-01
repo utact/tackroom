@@ -145,6 +145,7 @@ MD_ENDINGS = {  # line ending -> is the sentence still open?
     "comma": ("설명을 마치고,", True),
     "particle": ("이 설명은 길어서 중간에서", True),
     **{f"particle ending in 다 {w}": (f"차단은 {w}", True) for w in ("세션마다", "이전보다", "여기에다")},
+    **{f"word resembling nominal ending {w}": (w, True) for w in ("다음", "처음", "마음")},
     "noun": ("성능 평가", True),
     "inline code": ("설정은 `config.json`", True),
     "link": ("자세한 내용은 [문서](a.md)", True),

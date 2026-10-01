@@ -1,6 +1,7 @@
 """Korean writing rules for Claude Code. Standard library only; no model calls.
 
-The session guide prevents the problems; the other hooks guarantee the rules when the guide is ignored.
+The session guide explains the rules; hooks report violations and block selected actions.
+Heuristic detection, hook reentry and fail-open errors limit enforcement.
 
 Events:
   session  SessionStart  adds the guide; snapshots the work tree so Stop sees only what the session changed
@@ -43,7 +44,7 @@ TOOL_MARKS = {
 # Markdown joins consecutive lines into one paragraph, so a paragraph line must end its sentence.
 SENTENCE_END = set(".!?:;…。") | set("다요까죠음함임됨")
 CLOSERS = ")]\"'”’」』*_~`"
-NOT_ENDS = ("마다", "보다", "에다")  # particles that end in 다 (버전마다, 이전보다)
+NOT_ENDS = ("마다", "보다", "에다", "다음", "처음", "마음")  # words and particles that resemble predicate endings
 # Comments and commit messages keep their line breaks, and noun-final style ("만료 파일 삭제") is normal there.
 # Only a comma or a particle/connective ending that cannot be a noun marks an open sentence.
 OPEN_ENDINGS = set("고며면서는을를의에와과로가은도만한된할될게지데니여해이및")

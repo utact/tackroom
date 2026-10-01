@@ -1,6 +1,6 @@
 {
   "name": "kowrite",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "한국어 문서·주석·커밋의 문장 중간 개행, 커밋의 도구 표기와 세션 링크, 문서 수치와 코드 상수 정합을 검사한다.",
   "license": "MIT",
   "author": {

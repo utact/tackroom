@@ -2,6 +2,7 @@
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -10,6 +11,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 HOOKS = ROOT / "plugin" / "kowrite" / "hooks"
+# Resolve before CreateProcess: Windows searches system32 before PATH for bare names.
+BASH = shutil.which("bash") or "bash"
+if os.name == "nt":
+    git_bash = Path(shutil.which("git") or "git").resolve().parent.parent / "bin" / "bash.exe"
+    if git_bash.is_file():
+        BASH = str(git_bash)
 sys.path.insert(0, str(HOOKS))
 import kowrite  # noqa: E402
 
@@ -66,5 +73,5 @@ class Repo(unittest.TestCase):
         pre = self.hook("pre", tool_name="Bash", tool_input={"command": command}, tool_use_id=tool_use_id)
         if denied(pre):
             return pre, {}
-        subprocess.run(["bash", "-c", command], cwd=self.root, capture_output=True)
+        subprocess.run([BASH, "-c", command], cwd=self.root, capture_output=True)
         return pre, self.hook("post", tool_name="Bash", tool_input={"command": command}, tool_use_id=tool_use_id)

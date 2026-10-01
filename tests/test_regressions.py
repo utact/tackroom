@@ -5,10 +5,13 @@ Do not generalize these cases; add a new one each time a defect is found.
 """
 
 import json
+import os
+import shlex
 import subprocess
+import sys
 import unittest
 
-from support import HOOKS, ROOT, Repo, denied, feedback, kowrite
+from support import BASH, HOOKS, ROOT, Repo, denied, feedback, kowrite
 
 
 class Regressions(Repo):
@@ -119,8 +122,22 @@ class Regressions(Repo):
         config = json.loads((HOOKS / "hooks.json").read_text(encoding="utf-8"))
         commands = [h["command"] for groups in config["hooks"].values() for group in groups for h in group["hooks"]]
         self.assertTrue(all(c.startswith('bash "${CLAUDE_PLUGIN_ROOT}/hooks/run" ') for c in commands), commands)
-        result = subprocess.run(["bash", str(HOOKS / "run"), "session"], input="{}", capture_output=True,
+        result = subprocess.run([BASH, str(HOOKS / "run"), "session"], input="{}", capture_output=True,
                                 text=True, encoding="utf-8")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("[kowrite]", result.stdout)
+
+    def test_2026_10_01_python_alias_exits_successfully_without_running_code(self):
+        """Simulate the reviewed WindowsApps failure: exit 0 without executing -c."""
+        fake = self.root / "bin"
+        stub = self.write("bin/python3", "#!/usr/bin/env bash\nexit 0\n")
+        fallback = self.write("bin/python", "#!/usr/bin/env bash\nexec {} \"$@\"\n".format(shlex.quote(sys.executable.replace("\\", "/"))))
+        for path in (stub, fallback):
+            path.chmod(0o755)
+        env = dict(os.environ, PATH=str(fake) + os.pathsep + os.environ["PATH"])
+        result = subprocess.run([BASH, str(HOOKS / "run"), "session"], input="{}", capture_output=True,
+                                text=True, encoding="utf-8", cwd=self.root, env=env, timeout=30)
+        self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("[kowrite]", result.stdout)
 
 
