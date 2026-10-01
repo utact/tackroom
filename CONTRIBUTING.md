@@ -1,7 +1,35 @@
 # 기여 관례
 
-브랜치, 커밋, 병합의 이름과 메시지 형식을 정한다.
+개발 환경과 검사, 브랜치·커밋·병합 형식을 정한다.
 이 관례를 정하기 전의 커밋은 고치지 않는다.
+
+## 개발 환경
+
+Python 3.8 이상이 필요하다.
+kowrite 통합 테스트에는 Git과 Bash가 필요하며, Windows에서는 Git Bash를 쓴다.
+
+```sh
+python scripts/sync_references.py
+python -m unittest discover -s tests
+claude plugin validate .
+claude plugin validate plugin/techjudge
+claude plugin validate plugin/harness
+claude plugin validate plugin/kowrite
+```
+
+| 테스트 | 확인 대상 |
+| --- | --- |
+| `test_plugins.py` | 패키지 참조·동기화·배포 경로 |
+| `test_stacks.py` | 기술 카드의 목록·절·형식 |
+| `test_rules.py` | 문장·커밋·상수 연결 규칙 |
+| `test_state.py` | 세션 상태·변경 추적 |
+| `test_regressions.py` | 발견한 실패의 재현 |
+| `test_metrics.py` | 검사기의 오탐·탐지율 |
+
+## 근거와 보고
+
+- 설명에는 뒷받침하는 출처와 버전을 붙인다.
+- 문제를 보고할 때는 요청, 환경, 예상 결과, 실제 결과를 적는다.
 
 ## 브랜치
 
