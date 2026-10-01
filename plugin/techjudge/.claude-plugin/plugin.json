@@ -1,0 +1,7 @@
+{
+  "name": "techjudge",
+  "version": "0.1.0",
+  "description": "현재 기능에 맞는 기술 후보와 학습 기회를 발견하고 비교·적용·검증으로 연결한다.",
+  "author": {"name": "Yoo Seung-jun", "email": "funczun@gmail.com"},
+  "license": "MIT"
+}

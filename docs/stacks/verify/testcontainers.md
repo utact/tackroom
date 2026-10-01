@@ -1,0 +1,101 @@
+# Testcontainers
+
+확인: 2026-09-27, testcontainers-java 문서(main), 최신 태그 2.0.5 기준.
+
+## 요약
+
+Testcontainers는 테스트 코드 안에서 진짜 DB, 브로커, 캐시를 Docker 컨테이너로 띄우고, 테스트가 끝나면 치우는 라이브러리다.
+H2 같은 대체 DB나 모의 객체로는 재현되지 않는 동작(잠금, 격리 수준, 드라이버 오류, 브로커의 재전달)을 실제 시스템으로 시험한다.
+이 조사의 거의 모든 "실패 재현"이 이 도구 위에서 돈다.
+
+## 문제 신호
+
+- 테스트는 H2로 통과했는데 운영 PostgreSQL에서 쿼리나 잠금 동작이 다르다.
+- 통합 시험을 위해 공용 개발 DB를 쓰다가 테스트끼리 데이터가 섞인다.
+- Kafka, RabbitMQ, Redis 관련 코드는 모의 객체로만 시험된다.
+- 개발자마다 로컬에 설치한 DB 버전이 다르다.
+
+## 기준선의 한계
+
+기준선은 인메모리 대체 DB(H2)와 모의 객체다.
+
+- H2는 PostgreSQL이나 MySQL과 SQL 방언, 잠금, 격리 수준, 제약 동작이 다르다. `SKIP LOCKED`, `ON CONFLICT`, advisory lock, JSONB 같은 기능은 재현되지 않는다.
+- 모의 객체는 우리가 예상한 동작만 돌려준다. 실제 시스템의 예상 밖 동작(재전달, 타임아웃, 부분 실패)은 시험되지 않는다.
+- 공용 테스트 환경은 테스트 간 간섭과 "다른 사람이 데이터를 바꿈" 문제가 있다.
+
+## 원리
+
+- **컨테이너 수명을 테스트에 묶는다.** JUnit 5 확장은 `@Container` 필드의 컨테이너를 시작·정지한다. 인스턴스 필드는 테스트 메서드마다, `static` 필드는 테스트 클래스의 모든 메서드가 공유한다.
+- **준비 대기.** 기본적으로 첫 매핑 포트가 열릴 때까지 최대 60초를 기다린다. 포트만으로 부족하면 HTTP 응답, 로그 메시지 같은 대기 전략을 지정한다.
+- **자원 정리.** Ryuk 자원 수거 컨테이너가 테스트 프로세스가 비정상 종료돼도 컨테이너를 정리한다.
+- **모듈.** PostgreSQL, MySQL, Kafka, RabbitMQ, Redis, Elasticsearch, Toxiproxy 등 모듈이 연결 정보와 대기 전략을 미리 갖추고 있다.
+- **재사용(실험 기능).** 같은 설정의 컨테이너를 실행 간에 남겨 두고 재사용할 수 있다. 문서는 실험 기능이며 CI에는 맞지 않는다고 경고한다.
+
+## 가치
+
+Testcontainers의 가치는 **"운영과 같은 시스템"으로 테스트하는 비용을 코드 한 줄로 낮추는 것**이다.
+
+- 잠금, 격리, 재전달, 드라이버 오류처럼 가장 사고가 많은 곳을 실제 동작으로 시험한다.
+- 테스트마다 깨끗한 환경을 띄워 테스트 간 간섭이 없다.
+- 개발자 PC와 CI가 같은 버전의 같은 시스템을 쓴다.
+
+- **학습 실험.** 실제 DB를 쓰는 동시 갱신 테스트를 컨테이너로 실행한다. 이미지 버전과 준비 조건을 고정하고, mock에서 통과한 가정이 실제 제약·잠금 아래서도 성립하는지 확인한다.
+
+## 트레이드오프와 리스크
+
+- **느리다.** 컨테이너 시작에 수 초~수십 초가 든다. 테스트마다 새로 띄우면 전체 시험 시간이 크게 는다.
+- **Docker가 필요하다.** CI와 개발 환경에 Docker 호환 런타임이 있어야 한다. 일부 CI(컨테이너 안의 컨테이너)는 설정이 까다롭다.
+- **공유 컨테이너는 상태를 공유한다.** 속도를 위해 컨테이너를 공유하면 테스트 간 데이터 격리를 직접 해야 한다.
+- **운영과 완전히 같지는 않다.** 단일 노드 컨테이너는 클러스터 장애, 복제 지연, 대용량 데이터의 실행 계획을 재현하지 못한다.
+- **재사용 기능의 함정.** 재사용 컨테이너는 자동으로 멈추지 않고, 문서는 자원 정리와 네트워킹이 완전하지 않다고 적는다.
+
+## 대안과 경계
+
+| 대안 | 고를 때 |
+|---|---|
+| 모의 객체, 가짜 객체 | 순수한 비즈니스 로직 단위 시험. 외부 시스템 동작은 대상이 아니다. |
+| 인메모리 대체 DB | 방언과 잠금에 의존하지 않는 아주 단순한 저장 로직. 대부분의 경우 권하지 않는다. |
+| Docker Compose 환경 | 여러 서비스를 오래 띄워 두고 수동 탐색이나 긴 실험을 한다. |
+| 공유 스테이징 환경 | 운영 규모 데이터, 클러스터 구성, 실제 네트워크가 필요하다. |
+
+## 깊이 있는 활용
+
+- **싱글턴 컨테이너로 속도를 낸다.** 문서의 싱글턴 패턴처럼 추상 기반 클래스의 `static` 초기화에서 컨테이너를 한 번만 띄우고 여러 테스트 클래스가 공유한다. 테스트마다 스키마나 데이터를 초기화하거나, 테스트를 트랜잭션으로 감싸 롤백한다.
+- **Spring Boot 연결을 자동화한다.** Spring Boot의 서비스 연결(`@ServiceConnection`)이나 `@DynamicPropertySource`로 컨테이너 주소를 애플리케이션 설정에 주입한다.
+- **운영과 같은 이미지 태그를 쓴다.** `postgres:latest` 대신 운영과 같은 주 버전의 태그를 고정한다.
+- **동시성 시험을 여기서 한다.** 이 조사의 경쟁 상태, 잠금, 격리 수준 실험은 모두 실제 DB가 필요하다. 테스트 안에서 스레드 여러 개를 `CountDownLatch`로 동시에 출발시켜 재현한다.
+- **Toxiproxy를 붙인다.** Toxiproxy 모듈로 의존 컨테이너 앞에 프록시를 두면 네트워크 장애 시험까지 같은 테스트 안에서 한다([Toxiproxy](toxiproxy.md)).
+- **컨테이너를 죽이는 시험을 한다.** 테스트 중에 컨테이너를 멈추거나 일시정지해(`docker pause`) 재연결과 재시도 로직을 시험한다.
+- **초기 데이터를 이미지나 스크립트로 넣는다.** 마이그레이션([Flyway](../state/schema-migration.md))을 테스트 시작 때 적용해, 스키마가 운영과 같은 경로로 만들어지게 한다.
+
+## 임시방책의 신호
+
+- H2에서 통과하지 않는 쿼리를 H2 호환 모드로 바꿔 통과시킨다.
+- 동시성 버그를 재현하는 테스트가 없다. "운영에서만 난다"로 끝난다.
+- 테스트가 공용 개발 DB를 쓰고, 순서에 따라 실패한다.
+- 컨테이너를 테스트마다 새로 띄워 시험 시간이 너무 길어지자 통합 시험을 끈다.
+
+## 실패 재현
+
+- **방언 차이.** `SKIP LOCKED`나 `ON CONFLICT`를 쓰는 코드를 H2와 실제 PostgreSQL에서 돌려 결과가 다른 것을 확인한다.
+- **격리 수준 차이.** 같은 동시성 테스트를 H2와 실제 DB에서 돌려 한쪽에서만 이상 현상이 나는 것을 본다.
+- **공유 상태 간섭.** 싱글턴 컨테이너에서 데이터 초기화를 빼고 테스트 순서를 바꿔 실패가 나는 것을 본다.
+
+## 측정과 검증
+
+- **시험 시간.** 컨테이너 시작 시간, 전체 통합 시험 시간을 기록하고 싱글턴·병렬 실행으로 줄인 효과를 본다.
+- **결함 탐지.** 운영에서 발견된 결함을 이 환경에서 재현하는 회귀 테스트로 남기고, 재현 가능 비율을 추적한다.
+- **불안정성.** 같은 테스트를 반복 실행해 간헐 실패율을 잰다. 간헐 실패는 대개 대기 전략 부족이나 공유 상태다.
+
+## 재검토 조건
+
+- 시험 시간이 개발 흐름을 막을 만큼 길어졌다. 싱글턴, 병렬화, 시험 분할을 다시 설계한다.
+- 클러스터 동작이 핵심인 결함이 늘었다. 여러 컨테이너 구성이나 스테이징 환경을 더한다.
+
+## 출처
+
+- Testcontainers for Java, [Manual container lifecycle control](https://github.com/testcontainers/testcontainers-java/blob/main/docs/test_framework_integration/manual_lifecycle_control.md): 싱글턴 컨테이너 패턴.
+- Testcontainers for Java, [JUnit 5](https://github.com/testcontainers/testcontainers-java/blob/main/docs/test_framework_integration/junit_5.md): 인스턴스 필드와 `static` 공유 컨테이너.
+- Testcontainers for Java, [Waiting for containers](https://github.com/testcontainers/testcontainers-java/blob/main/docs/features/startup_and_waits.md): 기본 60초 포트 대기와 대기 전략.
+- Testcontainers for Java, [Reusable Containers](https://github.com/testcontainers/testcontainers-java/blob/main/docs/features/reuse.md): 실험 기능, CI 부적합 경고.
+- Testcontainers for Java, [Configuration](https://github.com/testcontainers/testcontainers-java/blob/main/docs/features/configuration.md): Ryuk 자원 수거.

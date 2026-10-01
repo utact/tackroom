@@ -1,0 +1,254 @@
+{
+  "schema_version": 1,
+  "hash_encoding": "UTF-8 with LF line endings",
+  "files": {
+    "index.md": {
+      "source": "docs/stacks/README.md",
+      "sha256": "48034fa36887743f0d2ad13b3f06098c70fcdee8bce70cfdbad9e5e8b1cb7803"
+    },
+    "stacks/api/locking.md": {
+      "source": "docs/stacks/api/locking.md",
+      "sha256": "ad89a27d3d9e082df805541f79123cb8ddce6bf10dcfcfe8500e17ac854a745d"
+    },
+    "stacks/api/rate-limiting.md": {
+      "source": "docs/stacks/api/rate-limiting.md",
+      "sha256": "b09541742d030f2892f724cbbd9f6bbefffeebbb5f7eef7c3cfa39bc3168e15e"
+    },
+    "stacks/api/resilience4j.md": {
+      "source": "docs/stacks/api/resilience4j.md",
+      "sha256": "f798cf204ca43149fc0ccf899080dfc85c5d97ba1d99cb2390ff11b94133d726"
+    },
+    "stacks/api/timeout-retry-idempotency.md": {
+      "source": "docs/stacks/api/timeout-retry-idempotency.md",
+      "sha256": "817a67674f79e01955679e372516fcc4e7a78600ffb714bc674a2f7042142435"
+    },
+    "stacks/async/db-job-queue.md": {
+      "source": "docs/stacks/async/db-job-queue.md",
+      "sha256": "76bd95266bb7c381bf9f1b0e27cb51342ecc1797343b33cf64e2e786f18ab4eb"
+    },
+    "stacks/async/kafka.md": {
+      "source": "docs/stacks/async/kafka.md",
+      "sha256": "d41ab6e59409ed02f3579a3d4398e91ca5aff667e1e96f847214a73575850156"
+    },
+    "stacks/async/outbox-cdc.md": {
+      "source": "docs/stacks/async/outbox-cdc.md",
+      "sha256": "bf7af03d023f1e0314e37156843f0958f160239a9385e52ca3886d3d37043be9"
+    },
+    "stacks/async/rabbitmq.md": {
+      "source": "docs/stacks/async/rabbitmq.md",
+      "sha256": "aa66f1c6ec33688855019b07c1c1f2c1f8f3c029b2327c8dcac0db0361a8fc55"
+    },
+    "stacks/async/redis-streams.md": {
+      "source": "docs/stacks/async/redis-streams.md",
+      "sha256": "da77fd640bce740f83a7251a9d2d92db4329869737fafe3a7b0bdc52acb720c1"
+    },
+    "stacks/async/saga.md": {
+      "source": "docs/stacks/async/saga.md",
+      "sha256": "83bcf9d3f2039748544b6fef14844681d5e3dc5770d24eae7fd36cfb91035033"
+    },
+    "stacks/batch/airflow.md": {
+      "source": "docs/stacks/batch/airflow.md",
+      "sha256": "dfce300288398dc480c350f24df66d57491c380851dd59b3ca6aef5f6d84a55b"
+    },
+    "stacks/batch/quartz.md": {
+      "source": "docs/stacks/batch/quartz.md",
+      "sha256": "ea1ae7a739736b370d133dadf5a1d2e5768e57fd7738ed76ff667ddc1bc45c69"
+    },
+    "stacks/batch/spring-batch.md": {
+      "source": "docs/stacks/batch/spring-batch.md",
+      "sha256": "1110e6eb5314598b14e5a48ab4c119b0c19a551d1c5809a91cb2c11f2991887a"
+    },
+    "stacks/batch/spring-scheduler-shedlock.md": {
+      "source": "docs/stacks/batch/spring-scheduler-shedlock.md",
+      "sha256": "8f984e9bfbc92b06d07e6f6fc32086396b49ec62e5020e83cf035d9f8532e4ee"
+    },
+    "stacks/comm/grpc.md": {
+      "source": "docs/stacks/comm/grpc.md",
+      "sha256": "98ab3d4fcbfcee437d8da4f52a697df599a67b8d80aece4ea243994d98500f2a"
+    },
+    "stacks/comm/polling.md": {
+      "source": "docs/stacks/comm/polling.md",
+      "sha256": "1be84bd7d81e08dbd65c1e30e02b6b96f1eb73bce8265cead00d3338d20b4951"
+    },
+    "stacks/comm/sse.md": {
+      "source": "docs/stacks/comm/sse.md",
+      "sha256": "e9655d2d518ef253f106b0f9e04cc1b4092c3bad64ecbf4dd2de68301e0f9162"
+    },
+    "stacks/comm/webhook.md": {
+      "source": "docs/stacks/comm/webhook.md",
+      "sha256": "840681a4455ead948aca2b156609b8c3090a7817020266699fe0f1d3225f8d5a"
+    },
+    "stacks/comm/websocket.md": {
+      "source": "docs/stacks/comm/websocket.md",
+      "sha256": "b3eab3a738d628659718f3e222769b534bdf8e523ab9a3912238e05b0101aab5"
+    },
+    "stacks/data/bigquery.md": {
+      "source": "docs/stacks/data/bigquery.md",
+      "sha256": "2cdac4a0c4ad9db2b3dc2e520c72c97175129b2867a5f0f16d50dacf1cf8f0fa"
+    },
+    "stacks/data/duckdb.md": {
+      "source": "docs/stacks/data/duckdb.md",
+      "sha256": "8b03b923ae35dc5ed442800cbdf32d1c2b99dd0d607874ae3e5375eb16f05fa4"
+    },
+    "stacks/data/flink.md": {
+      "source": "docs/stacks/data/flink.md",
+      "sha256": "5425dd8f07f2e8e9bb10522683a4e33707ba23e87fab47365fd53dd5a87e2c05"
+    },
+    "stacks/data/spark.md": {
+      "source": "docs/stacks/data/spark.md",
+      "sha256": "ada03cc73e32a13b5727ef74cbb6253f9edd52bc4381ceae1402eadb6df42579"
+    },
+    "stacks/deploy/deployment-strategies.md": {
+      "source": "docs/stacks/deploy/deployment-strategies.md",
+      "sha256": "1046b36a6094aa55a8c015ae37244284c988b2e674b27736eb521746f4a1dc34"
+    },
+    "stacks/deploy/feature-flags.md": {
+      "source": "docs/stacks/deploy/feature-flags.md",
+      "sha256": "c99778d3d2bf3c4e48d9e757cedf5836f45a3b0258d64151da463b5f7ccd54cf"
+    },
+    "stacks/llm/a2a.md": {
+      "source": "docs/stacks/llm/a2a.md",
+      "sha256": "4f2dfc5ff40d4b63403a73e530c76178e88dd6d0509fa08159c81fe3ace590a2"
+    },
+    "stacks/llm/llm-api.md": {
+      "source": "docs/stacks/llm/llm-api.md",
+      "sha256": "bfdf811c7c836d5859c56510e38b6f9833c9b1d700a497a5b030f5565aa50fb7"
+    },
+    "stacks/llm/mcp.md": {
+      "source": "docs/stacks/llm/mcp.md",
+      "sha256": "3834661fe3c91be7b90c85a4515f17a06182ae142fea24a39c95147be4b3f81a"
+    },
+    "stacks/ops/docker.md": {
+      "source": "docs/stacks/ops/docker.md",
+      "sha256": "b307690cc2aa23ead6cb6ae24fc53e29c449bae19fa0c3db066d2024ee0562d5"
+    },
+    "stacks/ops/github-actions.md": {
+      "source": "docs/stacks/ops/github-actions.md",
+      "sha256": "872f17fe4d9bee5011c9505295f8e6241c3128929b9bc2866cd59eeb151c4f85"
+    },
+    "stacks/ops/kubernetes.md": {
+      "source": "docs/stacks/ops/kubernetes.md",
+      "sha256": "cfa887f08262000657794e899adbeca14dc597ebbf21652fd7323526c988615c"
+    },
+    "stacks/ops/loki.md": {
+      "source": "docs/stacks/ops/loki.md",
+      "sha256": "32223f2543520089ab14a6e803bd86b4ab374bfe596995f5d82a8fc4e444588d"
+    },
+    "stacks/ops/nginx-tls.md": {
+      "source": "docs/stacks/ops/nginx-tls.md",
+      "sha256": "67f97c78246965c394bbcf9191f19be54c5557dbf362634213a7f154eeae3eef"
+    },
+    "stacks/ops/oauth-jwt.md": {
+      "source": "docs/stacks/ops/oauth-jwt.md",
+      "sha256": "b48ebb3c728dbc0566b1102fc8cead0a1e00854ed5dde6d5cc1f2d1a96ea5fe0"
+    },
+    "stacks/ops/opentelemetry.md": {
+      "source": "docs/stacks/ops/opentelemetry.md",
+      "sha256": "08f9fd7b7818d7da2a0565000c7fb48ebf21e947282f39a22128baec571bbfde"
+    },
+    "stacks/ops/prometheus-grafana.md": {
+      "source": "docs/stacks/ops/prometheus-grafana.md",
+      "sha256": "97308c865c6038a8e65419bb2b703f1c1ca8bd8a121bfd18a65baab4c586a0fb"
+    },
+    "stacks/ops/secrets.md": {
+      "source": "docs/stacks/ops/secrets.md",
+      "sha256": "aa45e06e3e83d0c7ff844d9f9506ca1a9950c65f578cb4cedbe56ae8d19b3a1a"
+    },
+    "stacks/ops/slo-alerting.md": {
+      "source": "docs/stacks/ops/slo-alerting.md",
+      "sha256": "21a853eb3041f40f4a218c0f21a567d1ce9d6fdf2e6e3e9de9c494b5a79e1fb3"
+    },
+    "stacks/rag/chunking.md": {
+      "source": "docs/stacks/rag/chunking.md",
+      "sha256": "438ae9ed21c9ad7593ca2a3b0fbd38df674b9e564a734d3c1b0916dfb8950457"
+    },
+    "stacks/rag/document-parsing.md": {
+      "source": "docs/stacks/rag/document-parsing.md",
+      "sha256": "d584b2c4fb7c3092a101ff422e70660708fa9f79125cac8ac587e239d5394d70"
+    },
+    "stacks/rag/embeddings.md": {
+      "source": "docs/stacks/rag/embeddings.md",
+      "sha256": "5280ffdff6b44daab7baffd4d915cb71cc05300b66733c39e2dd0663063ac6a1"
+    },
+    "stacks/rag/llm-evaluation.md": {
+      "source": "docs/stacks/rag/llm-evaluation.md",
+      "sha256": "2cc7aaad65dd2e790d6ca48c72877db91d8b8c2af1a670d2b25b8443e1cd3b56"
+    },
+    "stacks/rag/rag-pipeline.md": {
+      "source": "docs/stacks/rag/rag-pipeline.md",
+      "sha256": "b1a06fe6cd081aa1dcc2738a779e26238fa9f05b5be08b18d7924102b538ba54"
+    },
+    "stacks/rag/vllm.md": {
+      "source": "docs/stacks/rag/vllm.md",
+      "sha256": "f95fe85dbbd8398fdb89c7d1beda089251be37b6ffbff3fd7719792441e38fff"
+    },
+    "stacks/search/caffeine.md": {
+      "source": "docs/stacks/search/caffeine.md",
+      "sha256": "6df597e1ad3d08ef7721bd9c389be0120d1d63261285d2f41fc415e2c857b227"
+    },
+    "stacks/search/elasticsearch.md": {
+      "source": "docs/stacks/search/elasticsearch.md",
+      "sha256": "1c44c97657bfa5407808314b31d268d38ca10074894ade731e156f234e3c93f3"
+    },
+    "stacks/search/http-cache.md": {
+      "source": "docs/stacks/search/http-cache.md",
+      "sha256": "ed45c24d9399888aa2079dba3c1fb2cd85f99b2296269298d8beffb0d173bb65"
+    },
+    "stacks/search/hybrid-rerank.md": {
+      "source": "docs/stacks/search/hybrid-rerank.md",
+      "sha256": "78043f997abbb93998a94a3d7b84a0e7dbbab8b5a93e2faa23026decc3ff1653"
+    },
+    "stacks/search/pgvector.md": {
+      "source": "docs/stacks/search/pgvector.md",
+      "sha256": "1aa4b939342618948426dce71159c79b2989fd595eeddebeb152d9c7f630bb3b"
+    },
+    "stacks/search/qdrant.md": {
+      "source": "docs/stacks/search/qdrant.md",
+      "sha256": "ad2e0382afb4f3824964bb762ddf07379097cae59ad10f300cfe7a123d035a78"
+    },
+    "stacks/search/redis-cache.md": {
+      "source": "docs/stacks/search/redis-cache.md",
+      "sha256": "12ddb9bc7b870e58cc07ad1731e89fc99c450e40752d2de3ac8073f96f46d78e"
+    },
+    "stacks/state/dynamodb.md": {
+      "source": "docs/stacks/state/dynamodb.md",
+      "sha256": "3a3aae0632a56b501c10d04840e235d73a8848a6c4e1c963b5ffe4cd542afb79"
+    },
+    "stacks/state/mysql-innodb.md": {
+      "source": "docs/stacks/state/mysql-innodb.md",
+      "sha256": "e462ed66e6c60c82e81e48f133f7612985a0d49524f9f09265f186c11939f567"
+    },
+    "stacks/state/postgresql.md": {
+      "source": "docs/stacks/state/postgresql.md",
+      "sha256": "5cf2351cf0d9ab98e22b72becb5bc3db1b3af32084268d978a6422017de5fdd4"
+    },
+    "stacks/state/schema-migration.md": {
+      "source": "docs/stacks/state/schema-migration.md",
+      "sha256": "8f0ec3050919f11ab81a8a28ef4b9969e8f7f8404e3891ed33cdfe0480add445"
+    },
+    "stacks/storage/file-upload.md": {
+      "source": "docs/stacks/storage/file-upload.md",
+      "sha256": "d092fd61ed4b97e433556e32a38cd6a1da06e24cc2dd22002d9ca16288036836"
+    },
+    "stacks/storage/object-storage.md": {
+      "source": "docs/stacks/storage/object-storage.md",
+      "sha256": "b68c014866e29dc7ee0174e1326c208679d12850bdc16c9ac655d26028a2d721"
+    },
+    "stacks/verify/k6.md": {
+      "source": "docs/stacks/verify/k6.md",
+      "sha256": "ab6751020bea23ac88adbc1216ea1503424c17a2780434cd29a7637b9e61c998"
+    },
+    "stacks/verify/statistics.md": {
+      "source": "docs/stacks/verify/statistics.md",
+      "sha256": "f848a3d4033c5c8137fc5f57a7c1605bd6ccedac20cf5b6749972c260f4d99bb"
+    },
+    "stacks/verify/testcontainers.md": {
+      "source": "docs/stacks/verify/testcontainers.md",
+      "sha256": "541f736f3d5b3b0b0a861ac974873a8408cd180683388ae687030fffc7083a88"
+    },
+    "stacks/verify/toxiproxy.md": {
+      "source": "docs/stacks/verify/toxiproxy.md",
+      "sha256": "c81d26def1aee4a9f8e93a847d0260a1bda96be0563f96116ad0b2ad95c09833"
+    }
+  }
+}

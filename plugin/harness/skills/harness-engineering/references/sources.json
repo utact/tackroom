@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "hash_encoding": "UTF-8 with LF line endings",
+  "files": {
+    "harness-engineering.md": {
+      "source": "docs/harness-engineering.md",
+      "sha256": "276e046d39dc5cf424aa0246b8fcc3697877e2ee4a36f111671cc693434f900a"
+    }
+  }
+}

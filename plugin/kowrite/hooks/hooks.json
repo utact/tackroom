@@ -2,18 +2,18 @@
   "hooks": {
     "SessionStart": [
       {"matcher": "startup|clear|compact",
-       "hooks": [{"type": "command", "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/kowrite.py\" session", "timeout": 10}]}
+       "hooks": [{"type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/run\" session", "timeout": 10}]}
     ],
     "PreToolUse": [
       {"matcher": "Bash|PowerShell",
-       "hooks": [{"type": "command", "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/kowrite.py\" pre", "timeout": 20}]}
+       "hooks": [{"type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/run\" pre", "timeout": 20}]}
     ],
     "PostToolUse": [
       {"matcher": "Write|Edit|MultiEdit|Bash|PowerShell",
-       "hooks": [{"type": "command", "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/kowrite.py\" post", "timeout": 20}]}
+       "hooks": [{"type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/run\" post", "timeout": 20}]}
     ],
     "Stop": [
-      {"hooks": [{"type": "command", "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/kowrite.py\" stop", "timeout": 30}]}
+      {"hooks": [{"type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/run\" stop", "timeout": 30}]}
     ]
   }
 }
