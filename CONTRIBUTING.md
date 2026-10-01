@@ -1,12 +1,16 @@
-# 기여 관례
+# Contributing
 
 개발 환경과 검사, 브랜치·커밋·병합 형식을 정한다.
 이 관례를 정하기 전의 커밋은 고치지 않는다.
 
-## 개발 환경
+## Development
+
+### Requirements
 
 Python 3.8 이상이 필요하다.
 kowrite 통합 테스트에는 Git과 Bash가 필요하며, Windows에서는 Git Bash를 쓴다.
+
+### Testing
 
 ```sh
 python scripts/sync_references.py
@@ -26,12 +30,14 @@ claude plugin validate plugin/kowrite
 | `test_regressions.py` | 발견한 실패의 재현 |
 | `test_metrics.py` | 검사기의 오탐·탐지율 |
 
-## 근거와 보고
+## Evidence and Reporting
 
 - 설명에는 뒷받침하는 출처와 버전을 붙인다.
 - 문제를 보고할 때는 요청, 환경, 예상 결과, 실제 결과를 적는다.
 
-## 브랜치
+## Git Workflow
+
+### Branches
 
 `main`이 기본 브랜치다.
 다른 사람의 작업과 겹치지 않으면 `main`에 직접 커밋한다.
@@ -46,7 +52,7 @@ claude plugin validate plugin/kowrite
 - 도구나 세션이 붙인 이름(`claude/...` 등)은 병합 전에 이 형식으로 바꾼다.
 - 병합한 브랜치는 지운다.
 
-## 커밋
+### Commits
 
 ```text
 <type>: <제목>
@@ -71,7 +77,7 @@ claude plugin validate plugin/kowrite
 - 각 커밋에서 테스트가 통과해야 한다. `docs/`를 바꾸면 생성된 플러그인 참조도 같은 커밋에 넣는다.
 - 플러그인 동작이 바뀌면 `plugin.json`의 버전을 올린다. `fix`는 패치, `feat`는 마이너 자리다.
 
-## 병합
+### Merging
 
 `main`에는 병합 커밋(`--no-ff`)으로 합쳐 브랜치 단위의 작업 경계를 남긴다.
 병합 커밋도 커밋 형식을 따른다.

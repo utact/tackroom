@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://github.com/utact/tackroom/actions/workflows/test.yml"><img src="https://github.com/utact/tackroom/actions/workflows/test.yml/badge.svg" alt="테스트 상태"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-0f766e" alt="MIT 라이선스"></a>
-  <a href="CONTRIBUTING.md#개발-환경"><img src="https://img.shields.io/badge/Python-3.8%2B-3776ab" alt="Python 3.8 이상"></a>
+  <a href="CONTRIBUTING.md#requirements"><img src="https://img.shields.io/badge/Python-3.8%2B-3776ab" alt="Python 3.8 이상"></a>
 </p>
 
 <p align="center">
