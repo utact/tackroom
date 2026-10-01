@@ -75,9 +75,7 @@ def build(root):
         relative = card.relative_to(root)
         target = "stacks/" + card.relative_to(root / "docs/stacks").as_posix()
         add("techjudge", target, relative)
-    # Two cards link ../../harness-engineering.md. Include it in each independent package.
-    for package in PACKAGES:
-        add(package, "harness-engineering.md", Path("docs/harness-engineering.md"))
+    add("harness", "harness-engineering.md", Path("docs/harness-engineering.md"))
     for name, entries in sources.items():
         metadata = {"schema_version": 1, "hash_encoding": "UTF-8 with LF line endings", "files": entries}
         outputs[PACKAGES[name] / "sources.json"] = json.dumps(metadata, ensure_ascii=False, indent=2) + "\n"

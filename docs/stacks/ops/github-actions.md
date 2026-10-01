@@ -106,4 +106,4 @@ GitHub Actions의 가치는 **"병합되는 모든 변경이 같은 검사를 �
 - GitHub 문서, [Securely using pull_request_target](https://github.com/github/docs/blob/main/content/actions/reference/security/securely-using-pull_request_target.md): 높은 신뢰 수준과 포크 코드 실행의 위험.
 - GitHub 문서, [OpenID Connect](https://github.com/github/docs/blob/main/content/actions/concepts/security/openid-connect.md): 짧게 사는 토큰, 장기 비밀 제거.
 - GitHub 문서, [Concurrency](https://github.com/github/docs/blob/main/content/actions/concepts/workflows-and-actions/concurrency.md), [Dependency caching](https://github.com/github/docs/blob/main/content/actions/reference/workflows-and-actions/dependency-caching.md), [Deployment environments](https://github.com/github/docs/blob/main/content/actions/concepts/workflows-and-actions/deployment-environments.md): 동시성 기본 동작, 캐시 7일·10GB, 환경 보호 규칙.
-- 이 저장소의 [하네스 엔지니어링](../../harness-engineering.md): git 로컬 훅 우회와 원격 Gate.
+- Git, [git-commit 문서](https://git-scm.com/docs/git-commit): `--no-verify`가 로컬 `pre-commit`·`commit-msg` 훅을 건너뛰는 동작.

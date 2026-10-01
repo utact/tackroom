@@ -124,7 +124,7 @@
     },
     "stacks/ops/github-actions.md": {
       "source": "docs/stacks/ops/github-actions.md",
-      "sha256": "ac60989f620dd1672498d8c1b2536368b97f5af2902501b752585f211032eb0a"
+      "sha256": "872f17fe4d9bee5011c9505295f8e6241c3128929b9bc2866cd59eeb151c4f85"
     },
     "stacks/ops/kubernetes.md": {
       "source": "docs/stacks/ops/kubernetes.md",
@@ -172,7 +172,7 @@
     },
     "stacks/rag/llm-evaluation.md": {
       "source": "docs/stacks/rag/llm-evaluation.md",
-      "sha256": "78f2575d9c6083497094743fc944dc5d6a3e4fc1e351df342e721339841d184b"
+      "sha256": "2cc7aaad65dd2e790d6ca48c72877db91d8b8c2af1a670d2b25b8443e1cd3b56"
     },
     "stacks/rag/rag-pipeline.md": {
       "source": "docs/stacks/rag/rag-pipeline.md",
@@ -249,10 +249,6 @@
     "stacks/verify/toxiproxy.md": {
       "source": "docs/stacks/verify/toxiproxy.md",
       "sha256": "c81d26def1aee4a9f8e93a847d0260a1bda96be0563f96116ad0b2ad95c09833"
-    },
-    "harness-engineering.md": {
-      "source": "docs/harness-engineering.md",
-      "sha256": "d5c907d82edd1b212b8f5d87cfa37f1adde265b1706ebed7f422f8a43da74f12"
     }
   }
 }

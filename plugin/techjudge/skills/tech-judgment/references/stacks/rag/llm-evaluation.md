@@ -125,4 +125,3 @@ RAG에서는 답이 틀린 원인이 검색 실패, 근거 없는 생성, 오래
 - Miller, [Adding Error Bars to Evals](https://arxiv.org/abs/2411.00640), 2024: 표준오차, 군집 표준오차, 대응 비교, 평가 크기 계획.
 - Yao 외, [τ-bench](https://arxiv.org/abs/2406.12045), 2024: pass^k.
 - [Position: Don't Use the CLT in LLM Evals With Fewer Than a Few Hundred Datapoints](https://arxiv.org/abs/2503.01747): 작은 평가셋에서의 근사 한계. 제목과 주장만 검색으로 확인했다.
-- 이 저장소의 [하네스 엔지니어링](../../harness-engineering.md): 코드·모델·사람 판정 순서, 평가 조건 기록.
