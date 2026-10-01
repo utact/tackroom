@@ -33,8 +33,9 @@ claude plugin validate plugin/kowrite
 
 ## 브랜치
 
-`main`이 기본 브랜치이며 직접 커밋하지 않는다.
-작업마다 `main`에서 브랜치를 만든다.
+`main`이 기본 브랜치다.
+다른 사람의 작업과 겹치지 않으면 `main`에 직접 커밋한다.
+작업이 겹치거나 검토가 필요하면 `main`에서 브랜치를 만든다.
 
 ```text
 <type>/<요약>
