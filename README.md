@@ -5,7 +5,7 @@
 <h1 align="center">Tackroom</h1>
 
 <p align="center">
-  <strong>AI와 함께 개발할 때, 기술 선택부터 검증과 글쓰기까지.</strong><br>
+  <strong>AI가 현재 작업에서 쓸 기술과 원리를 더 넓게 찾도록 돕습니다.</strong><br>
   Claude Code에서 독립적으로 골라 쓰는 개발 플러그인 모음.
 </p>
 
@@ -16,11 +16,51 @@
 </p>
 
 <p align="center">
-  <a href="#installation">Installation</a> ·
   <a href="#plugins">Plugins</a> ·
+  <a href="#installation">Installation</a> ·
   <a href="#documentation">Documentation</a> ·
   <a href="#contributing">Contributing</a>
 </p>
+
+## Plugins
+
+| 플러그인 | 주요 역할 |
+| --- | --- |
+| [techjudge](plugin/techjudge/skills/tech-judgment/SKILL.md) | 기술·원리의 활용 기회 탐색과 적용 |
+| [harness](plugin/harness/skills/harness-engineering/SKILL.md) | AI 작업 실패의 원인 진단과 개선 |
+| [kowrite](plugin/kowrite/README.md) | 문서 변경 누락 검사와 한국어 작성 지침 |
+
+techjudge와 harness는 관련 요청에서 AI가 선택할 수 있는 Skill이며, 명령으로도 호출할 수 있다.
+
+### techjudge
+
+현재 기능에 맞는 기술 스택·오픈소스·수학적 원리의 활용 기회를 찾는다.
+
+- 출처·적용 조건·대안·반례를 정리한 자료로 기존 방식과 후보를 비교하고, 프로젝트 제약과 추가 부담을 함께 따진다.
+- 작은 프로젝트의 학습 기회도 고려하며, 선택한 방법을 구현과 검증으로 잇는다.
+
+예를 들어 [목록 이동의 순서 키](docs/algorithms/systems/fractional-indexing.md), [배경의 생성 규칙](docs/algorithms/generation/procedural-illustration.md)을 검토한다.
+
+`/techjudge:tech-judgment`로 직접 호출할 수 있다.
+
+### harness
+
+AI의 반복 실수에서 정보·도구 실행·결과 판정 중 고칠 곳을 찾는다.
+
+- 안내·관찰·차단·자동 수정의 역할을 구분해 원인에 맞는 방법을 고른다.
+- 검사 실패를 수정·재검사로 잇고, 사용자 결정이 필요한 경우를 구분한다.
+
+`/harness:harness-engineering`로 직접 호출할 수 있다.
+
+### kowrite
+
+문서가 코드의 변경을 따라가도록 마커와 훅으로 검사한다.
+
+- 마커로 문서의 수치와 코드 상수를 연결해 값의 불일치를 검사한다.
+- 설명 대상 코드를 마커로 지정해, 코드만 바뀐 경우 문서 검토를 요구한다.
+- 사용자나 저장소에서만 통하는 표현은 통용 용어로 바꾸거나 처음에 정의하도록 세션 지침으로 안내한다.
+
+문장 중간 개행과 커밋의 도구 표기도 검사한다. 자세한 범위는 [kowrite 안내](plugin/kowrite/README.md)에 있다.
 
 ## Installation
 
@@ -37,50 +77,12 @@
 - **프로젝트 공유 범위**: 이 저장소의 협업자와 함께 쓴다.
 - **로컬 범위**: 이 저장소에서 자신에게만 적용한다.
 
-## Plugins
-
-| 플러그인 | 목적 | 동작 방식 |
-| --- | --- | --- |
-| [techjudge](plugin/techjudge/skills/tech-judgment/SKILL.md) | 기술 선택과 적용 | Skill과 기술 카드 |
-| [harness](plugin/harness/skills/harness-engineering/SKILL.md) | AI 작업 환경 개선 | Skill과 판단 기준 |
-| [kowrite](plugin/kowrite/README.md) | 한국어 작성 규칙 | 세션 지침과 훅 |
-
-### techjudge
-
-기능을 설계하거나 확장할 때 맞는 기술과 구현 원리를 고른다.
-
-- 기존 구조와 프로젝트 제약을 살펴 기술·알고리즘·데이터 표현을 비교한다.
-- 고른 기술을 구현과 검증까지 이어서 적용한다.
-- 주니어 개발자의 학습도 도입 이유로 다룬다.
-- 선택 이유, 배울 원리, 추가 부담, 확인할 동작을 설명한다.
-
-개발 요청에 맞춰 자동으로 쓰이며, `/techjudge:tech-judgment`로 직접 호출할 수도 있다.
-
-### harness
-
-AI가 지침을 놓치거나 도구·테스트 결과를 잘못 다룰 때 원인을 진단한다.
-
-- 지침, 도구, 훅, 피드백, 평가 중 고칠 곳을 정한다.
-- 검사 뒤의 수정·재검사 경로와 사용자에게 결정을 넘길 경로를 정한다.
-
-개발 요청에 맞춰 자동으로 쓰이며, `/harness:harness-engineering`으로 직접 호출할 수도 있다.
-
-### kowrite
-
-문서와 코드가 함께 지키는 한국어 작성 규칙이다.
-
-- 훅이 문서·주석의 문장 중간 개행과 커밋의 도구 표기를 검사한다.
-- 훅이 문서의 수치를 코드 상수와 연결하고, 설명하는 코드의 변경을 추적한다.
-- 세션 지침이 사용자나 저장소에서만 통하는 표현을 통용 용어로 바꾸도록 안내한다.
-
-자세한 규칙과 검사 범위는 [kowrite 안내](plugin/kowrite/README.md)에 있다.
-
 ## Documentation
 
-- [기술 카드](docs/stacks/README.md): 기술별 원리, 적용 조건, 반례, 검증 방법
-- [수학·알고리즘·표현 기법](docs/algorithms/README.md): 생성·배치·화면 표현·압축·데이터 성질의 상세 카드
-- [하네스 엔지니어링](docs/harness-engineering.md): AI 작업 환경을 개선하는 판단 기준
-- [스킬 구조와 검증](docs/skill-strategy.md): 두 Skill의 역할, 배포 참조, 평가 설계
+- [기술 스택·설계 패턴](docs/stacks/README.md): 현재 기능에서 비교할 기술과 학습 실험
+- [수학·알고리즘·표현 기법](docs/algorithms/README.md): 원리의 성립 조건, 활용 예시와 반례
+- [하네스 엔지니어링](docs/harness-engineering.md): 안내·관찰·차단·자동 수정의 구분과 적용 기준
+- [스킬 구조와 검증](docs/skill-strategy.md): 참조 배포 구조와 검증 범위
 
 ## Contributing
 

@@ -4,7 +4,7 @@
   "files": {
     "index.md": {
       "source": "docs/stacks/README.md",
-      "sha256": "48034fa36887743f0d2ad13b3f06098c70fcdee8bce70cfdbad9e5e8b1cb7803"
+      "sha256": "2f00a3505f4d1681cdccb2dca3b36f466fedee99ea97494a935b04ef74b5303a"
     },
     "stacks/api/locking.md": {
       "source": "docs/stacks/api/locking.md",
