@@ -85,23 +85,36 @@ class PluginDistribution(unittest.TestCase):
             self.assertEqual(path.read_text(encoding="utf-8"), "outdated\n")
 
     def test_source_changes_propagate_and_unlisted_cards_fail(self):
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            shutil.copytree(ROOT / "docs", root / "docs")
-            initial = sync.build(root)
-            source = root / "docs/stacks/api/locking.md"
-            original = source.read_text(encoding="utf-8")
-            source.write_text(original + "\nSource revision.\n", encoding="utf-8")
-            updated = sync.build(root)
-            changed = {path for path in initial if initial[path] != updated[path]}
-            self.assertEqual(changed, {
-                sync.PACKAGES["techjudge"] / "stacks/api/locking.md",
-                sync.PACKAGES["techjudge"] / "sources.json",
-            })
-            self.assertTrue(source.read_text(encoding="utf-8").endswith("Source revision.\n"))
-            source.with_name("unlisted.md").write_text("Unlisted card", encoding="utf-8")
-            with self.assertRaises(ValueError):
-                sync.build(root)
+        for card in ("stacks/api/locking.md", "algorithms/sequences/collatz.md"):
+            with self.subTest(card=card), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                shutil.copytree(ROOT / "docs", root / "docs")
+                initial = sync.build(root)
+                source = root / "docs" / card
+                original = source.read_text(encoding="utf-8")
+                source.write_text(original + "\nSource revision.\n", encoding="utf-8")
+                updated = sync.build(root)
+                changed = {path for path in initial if initial[path] != updated[path]}
+                self.assertEqual(changed, {
+                    sync.PACKAGES["techjudge"] / card,
+                    sync.PACKAGES["techjudge"] / "sources.json",
+                })
+                self.assertTrue(source.read_text(encoding="utf-8").endswith("Source revision.\n"))
+                source.with_name("unlisted.md").write_text("Unlisted card", encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    sync.build(root)
+
+    def test_duplicate_index_entries_fail(self):
+        for collection, card in (("stacks", "api/locking.md"), ("algorithms", "sequences/collatz.md")):
+            with self.subTest(collection=collection), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                shutil.copytree(ROOT / "docs", root / "docs")
+                source = root / "docs" / collection / "README.md"
+                text = source.read_text(encoding="utf-8")
+                duplicate = "## 목록\n\n[Duplicate]({})\n".format(card)
+                source.write_text(text.replace("## 목록\n", duplicate, 1), encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    sync.build(root)
 
     def test_sync_check_rejects_broken_links_before_writing(self):
         for link in ("missing.md", "../../../../../../README.md"):

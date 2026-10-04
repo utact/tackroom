@@ -249,6 +249,194 @@
     "stacks/verify/toxiproxy.md": {
       "source": "docs/stacks/verify/toxiproxy.md",
       "sha256": "c81d26def1aee4a9f8e93a847d0260a1bda96be0563f96116ad0b2ad95c09833"
+    },
+    "algorithms/index.md": {
+      "source": "docs/algorithms/README.md",
+      "sha256": "4fe45c856ad51840d4f49ea9a8dea86af329ebac6b2d725887a372e6430fe45e"
+    },
+    "algorithms/generation/boids.md": {
+      "source": "docs/algorithms/generation/boids.md",
+      "sha256": "a544f3fe1d0bc6821ae435d6206cc89727530c608a2e0afa184e6c4e28773e99"
+    },
+    "algorithms/generation/branching.md": {
+      "source": "docs/algorithms/generation/branching.md",
+      "sha256": "0e6e9012ba67d81f6150f0f635e289c0f400637d873ed79347afe91857ddce39"
+    },
+    "algorithms/generation/cellular-automata.md": {
+      "source": "docs/algorithms/generation/cellular-automata.md",
+      "sha256": "3dd26c8ee63319b76f86e5e434443ddb251fb3fbc9a170b1d2381def2bac6515"
+    },
+    "algorithms/generation/noise.md": {
+      "source": "docs/algorithms/generation/noise.md",
+      "sha256": "bd2f2e35a01818e63ca3e3e85917a92dab2b3dabcab4b1b70908b1144bb808a7"
+    },
+    "algorithms/generation/particle-growth.md": {
+      "source": "docs/algorithms/generation/particle-growth.md",
+      "sha256": "be935fcb5428e69ed3d88ddc1ddc123f7d0b00c61f275fdb42e92269b5acf12e"
+    },
+    "algorithms/generation/procedural-illustration.md": {
+      "source": "docs/algorithms/generation/procedural-illustration.md",
+      "sha256": "c29cbdaff6b495db4169ede2889d670be0c56fa7d101f5b7665a8cf8ecb467da"
+    },
+    "algorithms/generation/reaction-diffusion.md": {
+      "source": "docs/algorithms/generation/reaction-diffusion.md",
+      "sha256": "65a33e22edd63aa8422bb1e0a3c954f0c60435c8e8b423189304e63d482c72e8"
+    },
+    "algorithms/generation/spatial-dynamics.md": {
+      "source": "docs/algorithms/generation/spatial-dynamics.md",
+      "sha256": "002718d3f1fa46b58ddbb5fb5a0c217e08b555881238133e661672d680ff25ba"
+    },
+    "algorithms/rendering/billboards-impostors.md": {
+      "source": "docs/algorithms/rendering/billboards-impostors.md",
+      "sha256": "18a4ef38ec50db1b5a6f92eb5fae423e74a95d11cdafbade16486867bedb61a0"
+    },
+    "algorithms/rendering/displacement.md": {
+      "source": "docs/algorithms/rendering/displacement.md",
+      "sha256": "901fb447487e163cd742a763b531815ca1d83972fc2b9fcad2c83dd39ca5d3e0"
+    },
+    "algorithms/rendering/implicit-surfaces.md": {
+      "source": "docs/algorithms/rendering/implicit-surfaces.md",
+      "sha256": "9ca77a0ed3dbeac2003f45cfbb593bf4a9f4e299ae18d2b212b4b86f7ade61bd"
+    },
+    "algorithms/rendering/mode7.md": {
+      "source": "docs/algorithms/rendering/mode7.md",
+      "sha256": "b38092634f09d765ff0c49d0b9b526a1c3e6c457a64cf567090ae28eeebd326a"
+    },
+    "algorithms/rendering/projection-parallax.md": {
+      "source": "docs/algorithms/rendering/projection-parallax.md",
+      "sha256": "81fa4453813ae0a1b1ab87ffaf6da38c49a0cce5fb52636f3460621c1ef230bb"
+    },
+    "algorithms/rendering/sprite-lighting.md": {
+      "source": "docs/algorithms/rendering/sprite-lighting.md",
+      "sha256": "38169f1702a79a7adf01889515be7d31ace96e84c51aca673eeb811ffc7126fa"
+    },
+    "algorithms/sequences/chaotic-dynamics.md": {
+      "source": "docs/algorithms/sequences/chaotic-dynamics.md",
+      "sha256": "da4db4c41fe75fb4ebf6352f248ab3ca68c4840c5dd8471433f4051537813eb6"
+    },
+    "algorithms/sequences/chinese-remainder.md": {
+      "source": "docs/algorithms/sequences/chinese-remainder.md",
+      "sha256": "3ba85e34d8632d5b784497b7c224397f237f452fd9837f7177905518e4ff4156"
+    },
+    "algorithms/sequences/collatz.md": {
+      "source": "docs/algorithms/sequences/collatz.md",
+      "sha256": "16552dc463f7f908ccbbf817d00435766e6da56c385f75ee73b54cde7817fbc3"
+    },
+    "algorithms/sequences/de-bruijn.md": {
+      "source": "docs/algorithms/sequences/de-bruijn.md",
+      "sha256": "24af458366d4c4f6b0b259d11b2d0e0bfdb9847674f38118eac38074932cf082"
+    },
+    "algorithms/sequences/fractals.md": {
+      "source": "docs/algorithms/sequences/fractals.md",
+      "sha256": "ac2516bdf41145d6fb5feb8cb8574216d41acb75e4b623be16e931aebbe6769c"
+    },
+    "algorithms/sequences/gray-code.md": {
+      "source": "docs/algorithms/sequences/gray-code.md",
+      "sha256": "82f5b9c64f842c659f9666dd3d18600cb94746d731eb022b57ee07091738d842"
+    },
+    "algorithms/sequences/thue-morse.md": {
+      "source": "docs/algorithms/sequences/thue-morse.md",
+      "sha256": "477cd8ba6c4c74cb4f2af4225d4cc4f05acafbdccf57821b369b7483487c847a"
+    },
+    "algorithms/space/aperiodic-tiling.md": {
+      "source": "docs/algorithms/space/aperiodic-tiling.md",
+      "sha256": "c2b95f5f58d34b3e7708c03dcc881691e537407ebdc0682836af1489dc67c5fb"
+    },
+    "algorithms/space/hilbert.md": {
+      "source": "docs/algorithms/space/hilbert.md",
+      "sha256": "28e43c0a4b729986beddb4a484617bed8d83b913758f8042969b288fbc37e7cc"
+    },
+    "algorithms/space/phyllotaxis.md": {
+      "source": "docs/algorithms/space/phyllotaxis.md",
+      "sha256": "0e6f359b64e414a020adb8c90a78a06fb02665d37e245fdd4b1cfdd65cfdc96d"
+    },
+    "algorithms/space/sampling.md": {
+      "source": "docs/algorithms/space/sampling.md",
+      "sha256": "5b2dd8c4c5350966c4fcc448525a4673bff807db23668ff96a581d51cf0eab2e"
+    },
+    "algorithms/space/voronoi.md": {
+      "source": "docs/algorithms/space/voronoi.md",
+      "sha256": "429ce711347876524bbb48c6c03b8997916e503a652027e388d0c353ec2a1c56"
+    },
+    "algorithms/storage/gpu-textures.md": {
+      "source": "docs/algorithms/storage/gpu-textures.md",
+      "sha256": "455de25403216c745e7dd23397aca2bf94bc419a0bc3e0a8b5393864e38a5f0f"
+    },
+    "algorithms/storage/lossless-codecs.md": {
+      "source": "docs/algorithms/storage/lossless-codecs.md",
+      "sha256": "782abf3a815e8ff9e317918fddd82b1c4eda8c54c3285b273e5f585681dda5fd"
+    },
+    "algorithms/storage/mesh-compression.md": {
+      "source": "docs/algorithms/storage/mesh-compression.md",
+      "sha256": "b448d113984b0d3f18963671d5c17e1ff2bc44f72a0f7682431743254252b3f9"
+    },
+    "algorithms/storage/palette-tiles.md": {
+      "source": "docs/algorithms/storage/palette-tiles.md",
+      "sha256": "1f2deef6a6da3fd4a9c3940a28f8257755360ba2f58378c8275b3f5260935e49"
+    },
+    "algorithms/storage/pokemon-codec.md": {
+      "source": "docs/algorithms/storage/pokemon-codec.md",
+      "sha256": "e309fcc7b51b6d3cf1c8796f05469547a4f3c5e77b5fec021bcadefa346df296"
+    },
+    "algorithms/storage/reproducible-generation.md": {
+      "source": "docs/algorithms/storage/reproducible-generation.md",
+      "sha256": "dfc6ff681bfdae9363d989271f1d6f32b7f5322f60654a4b1881edfe367bfea4"
+    },
+    "algorithms/storage/sparse-sets.md": {
+      "source": "docs/algorithms/storage/sparse-sets.md",
+      "sha256": "11f7bc12b5830f0a4b5ed3467816dc287f966eef7bfb1bbb5a3c8c0ed5e81b39"
+    },
+    "algorithms/structure/canonical-graphs.md": {
+      "source": "docs/algorithms/structure/canonical-graphs.md",
+      "sha256": "db207882aaeaf4ecc9c8b11fe4dd0fa6851de8a2cbb6c6149288d2c14f451e9a"
+    },
+    "algorithms/structure/exact-cover.md": {
+      "source": "docs/algorithms/structure/exact-cover.md",
+      "sha256": "723dfc13201ee2f96e0ef6c1745e7a8965cbbc96bb5d178535025d069ca83889"
+    },
+    "algorithms/structure/layout.md": {
+      "source": "docs/algorithms/structure/layout.md",
+      "sha256": "42b08ab220a47751ac7215b49c07ffe9585249993bd7f2ec150c14d97934afed"
+    },
+    "algorithms/structure/markov-junior.md": {
+      "source": "docs/algorithms/structure/markov-junior.md",
+      "sha256": "80f56c005170edf26960c90765a2520cf1ef59ea98bd772d0d6e3b21418454d7"
+    },
+    "algorithms/structure/pattern-synthesis.md": {
+      "source": "docs/algorithms/structure/pattern-synthesis.md",
+      "sha256": "45e43ef2b31ce7af52b0ca39ca254f1a9e6810797a5a9880fa51f841966a4be3"
+    },
+    "algorithms/systems/braess.md": {
+      "source": "docs/algorithms/systems/braess.md",
+      "sha256": "10a9e6015635028a8d2e320829aeb03135dfd19403188e58cfa1936e24b32f30"
+    },
+    "algorithms/systems/client-processing.md": {
+      "source": "docs/algorithms/systems/client-processing.md",
+      "sha256": "c945c0d5093e0854659e24041594f5d7d094ee4e64eb4b7fac11d7f245cd1724"
+    },
+    "algorithms/systems/content-addressing.md": {
+      "source": "docs/algorithms/systems/content-addressing.md",
+      "sha256": "da1c77b5940a15b1123816d483905c434210c2df1620dcffa06d3b0f6f5d1446"
+    },
+    "algorithms/systems/crdt-calm.md": {
+      "source": "docs/algorithms/systems/crdt-calm.md",
+      "sha256": "33bc3094c3e791f18f938a786f357d5b122c29e793a1db603861221481ca82d7"
+    },
+    "algorithms/systems/fft-convolution.md": {
+      "source": "docs/algorithms/systems/fft-convolution.md",
+      "sha256": "b437765b01c47cf25333370e51fb8931aabcddb3ae00c9ab59b1ea1cf6eed772"
+    },
+    "algorithms/systems/fractional-indexing.md": {
+      "source": "docs/algorithms/systems/fractional-indexing.md",
+      "sha256": "3652d23bc40605ff728754d1c196a568cb72d4d51553c9f53ebcd11496b5e23a"
+    },
+    "algorithms/systems/monotone-search.md": {
+      "source": "docs/algorithms/systems/monotone-search.md",
+      "sha256": "3d61ca1776c662bf73b07d18e210ea0535c06346a1df2b3c6ce4ca47af9d4526"
+    },
+    "algorithms/systems/probabilistic-summaries.md": {
+      "source": "docs/algorithms/systems/probabilistic-summaries.md",
+      "sha256": "493786c8f93e51fa3474c6cde7934577cb8eb81c0fdbbe379237f008f4e37f43"
     }
   }
 }
