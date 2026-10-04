@@ -61,7 +61,7 @@ NOUNS = frozenset("""추가 대가 참고 경고 최고 광고 창고 재고 문
 LIST_ITEM = re.compile(r"^(?:[-*+]|\d+[.)])\s+")
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 GUIDE = """[kowrite]
-- 문장은 짧게 쓰고, 한 문장이 끝나면 줄을 바꿔라.
+- 문장은 짧게 쓰되, 자연스러운 문단은 이어 써라. 줄을 바꿀 때는 문장 중간을 끊지 마라.
 - 커밋 메시지에 도구·모델 표기와 세션 링크를 넣지 마라.
 - 문서에 코드 상수 값을 적으면 값 앞에 `<!-- const: 경로:상수명 -->`을 붙여라.
 - 코드를 설명하는 문서에는 `<!-- tracks: 경로 -->`를 적어라.
@@ -279,7 +279,7 @@ def check_wraps(path, text):
         found = wraps(comment_rows(path, text), open_ending)
     else:
         return []
-    return [finding(path, number, "ko-wrap", "문장 중간에서 줄을 바꿨다. 문장 단위로 줄을 바꿔라.", line.strip())
+    return [finding(path, number, "ko-wrap", "문장 중간에서 줄을 바꿨다. 줄바꿈을 없애거나 문장이 끝난 뒤에 바꿔라.", line.strip())
             for number, line in found]
 
 
