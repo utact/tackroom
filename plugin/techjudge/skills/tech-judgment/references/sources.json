@@ -437,6 +437,218 @@
     "algorithms/systems/probabilistic-summaries.md": {
       "source": "docs/algorithms/systems/probabilistic-summaries.md",
       "sha256": "493786c8f93e51fa3474c6cde7934577cb8eb81c0fdbbe379237f008f4e37f43"
+    },
+    "design/index.md": {
+      "source": "docs/design/README.md",
+      "sha256": "b4608641b7d15fbad6237512ddb986ae71d735130a122e479c599b849ecaa688"
+    },
+    "design/cognition/fitts.md": {
+      "source": "docs/design/cognition/fitts.md",
+      "sha256": "80c2446f3f42b6194c50f2f75538196c6660548c1bacd8800afb4b19964bc43c"
+    },
+    "design/cognition/gestalt-grouping.md": {
+      "source": "docs/design/cognition/gestalt-grouping.md",
+      "sha256": "f2daf4cbccf8c75e18ca644e66044da8bcb522eb9ecd665430a0359d506a6669"
+    },
+    "design/cognition/hick-hyman.md": {
+      "source": "docs/design/cognition/hick-hyman.md",
+      "sha256": "287e87c40efbc0e215fc9174e6364680847b2b20ff3376d90ce25dba6aee9a5f"
+    },
+    "design/cognition/jakob.md": {
+      "source": "docs/design/cognition/jakob.md",
+      "sha256": "6c5e33ed3ee99c369c0e503ab2a2a49c2d262d21e72e8ae4d5ec86e769fc6d04"
+    },
+    "design/cognition/recognition.md": {
+      "source": "docs/design/cognition/recognition.md",
+      "sha256": "fd4fb35f528ea0975081f522763c62c7f39de12f2057f518c975627ba6cfb6bf"
+    },
+    "design/cognition/von-restorff.md": {
+      "source": "docs/design/cognition/von-restorff.md",
+      "sha256": "7eec0b1b200550a163a5f1eb66d4eb0c5d857e429fbea14cf1f3869558592f22"
+    },
+    "design/foundations/accessibility.md": {
+      "source": "docs/design/foundations/accessibility.md",
+      "sha256": "2cd8efc5e48b685b8b8431b9ce3ebc20f5ead7fa4ee0d35ed203a90996fdc632"
+    },
+    "design/foundations/color-themes.md": {
+      "source": "docs/design/foundations/color-themes.md",
+      "sha256": "5648382d1152f44a4667dd90a98dabf80a0441e14abfe0159c8007aebdc96d20"
+    },
+    "design/foundations/component-libraries.md": {
+      "source": "docs/design/foundations/component-libraries.md",
+      "sha256": "611aff25ae0eed8b0bddca067c4ae3bed438e996d54d8ec1fc5c3f5baa58a0d6"
+    },
+    "design/foundations/design-tokens.md": {
+      "source": "docs/design/foundations/design-tokens.md",
+      "sha256": "7e8297d346596bf6178ae1c285ba9654428456a5b8eb23b4bfb1ed40a884aa0a"
+    },
+    "design/foundations/platform-layout.md": {
+      "source": "docs/design/foundations/platform-layout.md",
+      "sha256": "0aea6f804bc796a3836db9aa77146d0c1adff2db65381951f5c7749c1d285b54"
+    },
+    "design/foundations/typography.md": {
+      "source": "docs/design/foundations/typography.md",
+      "sha256": "e7ad0bde5b79c0eb5cd929f6633e52a5a8aad7d3cdb22f630189caf5f68347e2"
+    },
+    "design/identity/apple.md": {
+      "source": "docs/design/identity/apple.md",
+      "sha256": "a00e83595350b69f683bde6c7154259b43a0267c097c0ce1990bb47e3980753a"
+    },
+    "design/identity/google.md": {
+      "source": "docs/design/identity/google.md",
+      "sha256": "2395bb364d9baba3960082a975361a794c9394e3dbd41b5c74cbb6add97bc1c4"
+    },
+    "design/identity/kakao.md": {
+      "source": "docs/design/identity/kakao.md",
+      "sha256": "cb6ba218546c3e860861ea7c77b53db80bb3a1db984b2309f10eae59caa9d09d"
+    },
+    "design/identity/microsoft.md": {
+      "source": "docs/design/identity/microsoft.md",
+      "sha256": "3a7283aea799630de7e6a0fd82dddd1ef5b5fbbe4ae05e5e14842374fa804e5e"
+    },
+    "design/identity/naver.md": {
+      "source": "docs/design/identity/naver.md",
+      "sha256": "253c5a79733347519626d491263456a422c60eb358903a9285acbe7cc7f8e68b"
+    },
+    "design/interaction/commands.md": {
+      "source": "docs/design/interaction/commands.md",
+      "sha256": "9c0836748a8c632a3df699ffe365750d5b2e49112bf80899f497670d90f97093"
+    },
+    "design/interaction/data-views.md": {
+      "source": "docs/design/interaction/data-views.md",
+      "sha256": "e5482f650a08d19469744c90f3596d9bea35d838926213ef692e6e9312b29eb3"
+    },
+    "design/interaction/destructive-actions.md": {
+      "source": "docs/design/interaction/destructive-actions.md",
+      "sha256": "41cd492c7901577b4e3550e27a0291dcd5c901e5ce70a83cafb36345f7c2319a"
+    },
+    "design/interaction/feedback.md": {
+      "source": "docs/design/interaction/feedback.md",
+      "sha256": "d1d0fe99ff1bfccdaa46c02495a8fb29b29a0938ad8d73de8e8a8b4d21884a28"
+    },
+    "design/interaction/flows.md": {
+      "source": "docs/design/interaction/flows.md",
+      "sha256": "e005578452d6259534c3af248a8cdb91751949fb9f15cb37b20c7992230f50b7"
+    },
+    "design/interaction/forms.md": {
+      "source": "docs/design/interaction/forms.md",
+      "sha256": "9ce41ae9b0d165423e5b18f66db1a7d9a896df66f0d08c52196a1be232e7b433"
+    },
+    "design/interaction/navigation.md": {
+      "source": "docs/design/interaction/navigation.md",
+      "sha256": "6f33d8a47ce3b11c232456ec5c210641928948b19499124d07c630fa30fbf3fd"
+    },
+    "design/interaction/overlays.md": {
+      "source": "docs/design/interaction/overlays.md",
+      "sha256": "0edfcdbac9de3ce32c489cce876b7caa2c076dd691b4b2a747c58de7471bae56"
+    },
+    "design/interaction/press-feedback.md": {
+      "source": "docs/design/interaction/press-feedback.md",
+      "sha256": "d1b7b7ff4f19d4a2d72b1d939f02b4e216e61a455a46686d082ef1e6e1ea164a"
+    },
+    "design/interaction/search.md": {
+      "source": "docs/design/interaction/search.md",
+      "sha256": "f228917d38a0f2debec95a18697be3c16a439fc8c632e4fa80876748ea6ab5a6"
+    },
+    "design/interaction/selection.md": {
+      "source": "docs/design/interaction/selection.md",
+      "sha256": "41313223b4fb4bc01fe3f4df6aeaec3fba3dcdd25af294baec9ebe9261cf5f6e"
+    },
+    "design/interaction/touch-targets.md": {
+      "source": "docs/design/interaction/touch-targets.md",
+      "sha256": "a6b03d11921102d69e74c46ec300355fd4f1caf8e5c58c43361f66a89c74e41d"
+    },
+    "design/interaction/ui-copy.md": {
+      "source": "docs/design/interaction/ui-copy.md",
+      "sha256": "ba5f670db18a292dc1c8124e52e8faec23aa897d3276b4530e0b9f5c83cb85c0"
+    },
+    "design/interaction/undo-recovery.md": {
+      "source": "docs/design/interaction/undo-recovery.md",
+      "sha256": "0b6f673df8ead319585f5ee5e3f91c0eb75cd8250de2a878296a837a65f27fef"
+    },
+    "design/interaction/unsaved-changes.md": {
+      "source": "docs/design/interaction/unsaved-changes.md",
+      "sha256": "990426a08c80d38bb9b3b3c12f4fd917c855ae3598eb68f91aea3ac97b1f36b8"
+    },
+    "design/media/asset-choice.md": {
+      "source": "docs/design/media/asset-choice.md",
+      "sha256": "590c4d10a222c279868e9a98d5ddabfb7d82f56028a6d17b1a93a67a8ded2983"
+    },
+    "design/media/canvas-webgl.md": {
+      "source": "docs/design/media/canvas-webgl.md",
+      "sha256": "7711127156005a9fd21e6ddc9ee47058ceef07d29cc193810ef371daba58a5cf"
+    },
+    "design/media/icons.md": {
+      "source": "docs/design/media/icons.md",
+      "sha256": "5cc60c928e8f5beced6185b1a36966be5e5d4fd8e20e9fd49cd7582bb8ef968d"
+    },
+    "design/media/lottie.md": {
+      "source": "docs/design/media/lottie.md",
+      "sha256": "7d02c244c185c49451d9e116889dae8647deed484878e2bae108bd66acadbcae"
+    },
+    "design/media/motion.md": {
+      "source": "docs/design/media/motion.md",
+      "sha256": "2c7e3d51cbe52cd12328b6fac364549a73d0278e37eb66b5564b197c53002c96"
+    },
+    "design/media/procedural.md": {
+      "source": "docs/design/media/procedural.md",
+      "sha256": "adb5014ad51b075bae03eee10bc231a1b2357395d07d3cf30af575875e4d8e2b"
+    },
+    "design/media/production.md": {
+      "source": "docs/design/media/production.md",
+      "sha256": "e6298106d0e450512cab1636a0bcbf1035f598d8db813768b78f8786c2b08d9a"
+    },
+    "design/media/rive.md": {
+      "source": "docs/design/media/rive.md",
+      "sha256": "8134049d8e89fd5cbbc4d399c5c262e9832242d04fbfd3880cc173197c7b707d"
+    },
+    "design/media/sprites.md": {
+      "source": "docs/design/media/sprites.md",
+      "sha256": "f42a6eea2c77a2eb691c10c81a5c464bf5f2815305eb0bb4d3b1922a27047098"
+    },
+    "design/media/video.md": {
+      "source": "docs/design/media/video.md",
+      "sha256": "8a9fee41e9d9c4e0da66ffa752942f6e63c63ea2d9ec79f5e865045b49e24a25"
+    },
+    "design/styles/bento.md": {
+      "source": "docs/design/styles/bento.md",
+      "sha256": "a673e8879f49e977c8f4e6acc9cce659ba1c4b11f2b71f85bde346194da0c3ae"
+    },
+    "design/styles/clay.md": {
+      "source": "docs/design/styles/clay.md",
+      "sha256": "d44148e92d198c2f015892f7e6af38bd08f964d14784e511539fd8504c6fa296"
+    },
+    "design/styles/flat-material.md": {
+      "source": "docs/design/styles/flat-material.md",
+      "sha256": "949038313cb9fa479fe95f051151a32f6d5e27cfb572d71f6d21d99f757f24cf"
+    },
+    "design/styles/glass.md": {
+      "source": "docs/design/styles/glass.md",
+      "sha256": "fc944ea04fd127b25a0d7ea2e17170d1d910c0b95825a75e45d61b61b36b039e"
+    },
+    "design/styles/gradients.md": {
+      "source": "docs/design/styles/gradients.md",
+      "sha256": "be2e3fcbdff84a4a58e1645c9a4ead832ffe2e2fe283b5f9322aa81d4d5b320f"
+    },
+    "design/styles/neobrutalism.md": {
+      "source": "docs/design/styles/neobrutalism.md",
+      "sha256": "dec61d8f539d31b3d1c34a03c6414be42e4662ffd7f5cebb6143a0a8f44a3ee1"
+    },
+    "design/styles/neumorphism.md": {
+      "source": "docs/design/styles/neumorphism.md",
+      "sha256": "14155264a9f05160c6a201e8a409791735f96750e087baa27baf2ca6c27c0d95"
+    },
+    "design/styles/skeuomorphism.md": {
+      "source": "docs/design/styles/skeuomorphism.md",
+      "sha256": "4b616aa8598af245a8484e551f01586c1e15b0bbd214fecb2145b690788fa02a"
+    },
+    "design/styles/textures.md": {
+      "source": "docs/design/styles/textures.md",
+      "sha256": "551f65577689c6bb258e977284fb8f2446988402ad7cef74e4baf985a6e9b4eb"
+    },
+    "design/verify/visual-ux.md": {
+      "source": "docs/design/verify/visual-ux.md",
+      "sha256": "28d0320fdf9269bc167e725345c1fd065ae016916f4c6adbe6c132d8a17dea60"
     }
   }
 }

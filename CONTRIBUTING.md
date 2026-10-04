@@ -24,7 +24,7 @@ claude plugin validate plugin/kowrite
 | 테스트 | 확인 대상 |
 | --- | --- |
 | `test_plugins.py` | 패키지 참조·동기화·배포 경로 |
-| `test_stacks.py` | 기술·알고리즘 카드의 목록·절·형식 |
+| `test_stacks.py` | 기술·알고리즘·디자인 카드의 목록·절·형식 |
 | `test_rules.py` | 문장·커밋·상수 연결 규칙 |
 | `test_state.py` | 세션 상태·변경 추적 |
 | `test_regressions.py` | 발견한 실패의 재현 |

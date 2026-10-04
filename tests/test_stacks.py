@@ -1,4 +1,4 @@
-"""Technology and algorithm cards follow the template in docs/stacks/README.md.
+"""Technology, algorithm and design cards follow docs/stacks/README.md.
 
 Every card listed in the index exists, every file is listed, and each card has every section in order.
 A card that skips a section, such as trade-offs, fails here instead of in review.
@@ -11,7 +11,8 @@ from support import ROOT, kowrite
 
 STACKS = ROOT / "docs" / "stacks"
 ALGORITHMS = ROOT / "docs" / "algorithms"
-COLLECTIONS = (STACKS, ALGORITHMS)
+DESIGN = ROOT / "docs" / "design"
+COLLECTIONS = (STACKS, ALGORITHMS, DESIGN)
 SECTIONS = ["요약", "문제 신호", "기준선의 한계", "원리", "가치", "트레이드오프와 리스크", "대안과 경계",
             "깊이 있는 활용", "임시방책의 신호", "실패 재현", "측정과 검증", "재검토 조건", "출처"]
 

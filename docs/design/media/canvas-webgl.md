@@ -1,0 +1,56 @@
+# Canvas·WebGL·셰이더
+
+확인: 2026-10-04.
+
+## 요약
+
+그래픽 객체와 픽셀 효과를 Canvas·GPU 렌더 경로로 처리하는 방법이다.
+
+## 문제 신호
+
+다수의 입자·스프라이트·실시간 변형을 기존 DOM·SVG로 표시할 때 비용이 커진다.
+
+## 기준선의 한계
+
+객체마다 DOM을 만들거나 큰 필터를 반복 갱신하는 방식은 현재 장면에 맞지 않을 수 있다.
+
+## 원리
+
+Canvas 2D는 그리기 명령을, WebGL은 GPU 렌더 파이프라인을 제공한다. PixiJS는 2D 장면·텍스처 관리를 돕는 MIT 라이브러리다. 셰이더는 렌더 과정의 계산을 정의한다.
+
+## 가치
+
+많은 객체와 실시간 효과를 다른 렌더 방식으로 비교·구현한다.
+
+## 트레이드오프와 리스크
+
+DOM의 의미·초점·텍스트를 자동으로 얻지 못한다. GPU 지원·컨텍스트 손실·고해상도·자원 해제를 확인한다. GPU 사용이 모든 장면에서 빠름을 보장하지 않는다.
+
+## 대안과 경계
+
+작은 UI는 DOM·SVG가 기준선이다. 정적 효과는 이미지·영상, 많은 상호작용 객체는 Canvas·WebGL을 비교한다.
+
+## 깊이 있는 활용
+
+업무 UI와 장면 표시를 분리하고 입력 대상·접근성·텍스처 수명을 설계한다.
+
+## 임시방책의 신호
+
+전체 앱을 Canvas에 넣거나 보이지 않는 장면도 계속 그린다.
+
+## 실패 재현
+
+객체 수·기기 픽셀 비율·화면 이탈·자원 해제·렌더 실패를 바꿔 확인한다.
+
+## 측정과 검증
+
+같은 장면의 프레임 시간, 입력 지연, 메모리와 대체 화면을 비교한다.
+
+## 재검토 조건
+
+객체 수·효과·접근성·기기 범위가 바뀌면 렌더 경로를 재검토한다.
+
+## 출처
+
+- [MDN Canvas 최적화](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Optimizing_canvas), [WebGL](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API): 렌더 경로와 환경.
+- [PixiJS Textures](https://pixijs.com/8.x/guides/components/textures), [LICENSE](https://raw.githubusercontent.com/pixijs/pixijs/dev/LICENSE): 자원 관리와 MIT 조건.

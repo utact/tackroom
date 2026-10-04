@@ -71,29 +71,31 @@ def build(root):
              "현재 결정과 연결되는 카드를 골라 읽는다. 표의 기술은 대안·보완 요소·진단 도구가 섞여 있으므로 역할을 구분한다.\n"
              "기준선은 비교의 출발점이며, 작은 규모에서도 학습은 독립적인 도입 이유다.\n"
              "카드의 출처와 확인 범위를 읽고 구현에 영향을 주는 버전별 동작을 재확인한다.\n"
-             "생성 규칙·공간 배치·화면 표현·압축·데이터 성질은 [수학·알고리즘 색인](algorithms/index.md)에서 찾는다.\n\n")
+             "생성 규칙·공간 배치·화면 표현·압축·데이터 성질은 [수학·알고리즘 색인](algorithms/index.md)에서 찾는다.\n"
+             "플랫폼 관례·상호작용·시각 스타일·그래픽·모션은 [디자인 색인](design/index.md)에서 찾는다.\n\n")
     add("techjudge", "index.md", index_source, intro + table + "\n")
     for card in cards:
         relative = card.relative_to(root)
         target = "stacks/" + card.relative_to(root / "docs/stacks").as_posix()
         add("techjudge", target, relative)
-    algorithm_source = Path("docs/algorithms/README.md")
-    algorithm_index = read(root, algorithm_source)
-    match = re.search(r"^## 목록\n(.*?)(?=^## |\Z)", algorithm_index, re.M | re.S)
-    if not match:
-        raise ValueError("docs/algorithms/README.md: missing '목록' section")
-    listed_paths = re.findall(r"\]\(([\w-]+/[\w-]+\.md)\)", match.group(1))
-    listed = set(listed_paths)
-    cards = sorted((root / "docs/algorithms").glob("*/*.md"))
-    actual = {p.relative_to(root / "docs/algorithms").as_posix() for p in cards}
-    if not actual or listed != actual or len(listed_paths) != len(listed):
-        raise ValueError("Algorithm index must list every card once; missing={}, extra={}".format(
-            sorted(actual - listed), sorted(listed - actual)))
-    add("techjudge", "algorithms/index.md", algorithm_source)
-    for card in cards:
-        relative = card.relative_to(root)
-        target = "algorithms/" + card.relative_to(root / "docs/algorithms").as_posix()
-        add("techjudge", target, relative)
+    for collection in ("algorithms", "design"):
+        directory = Path("docs") / collection
+        index_source = directory / "README.md"
+        index = read(root, index_source)
+        match = re.search(r"^## 목록\n(.*?)(?=^## |\Z)", index, re.M | re.S)
+        if not match:
+            raise ValueError("{}: missing '목록' section".format(index_source))
+        listed_paths = re.findall(r"\]\(([\w-]+/[\w-]+\.md)\)", match.group(1))
+        listed = set(listed_paths)
+        cards = sorted((root / directory).glob("*/*.md"))
+        actual = {p.relative_to(root / directory).as_posix() for p in cards}
+        if not actual or listed != actual or len(listed_paths) != len(listed):
+            raise ValueError("{} index must list every card once; missing={}, extra={}".format(
+                collection, sorted(actual - listed), sorted(listed - actual)))
+        add("techjudge", collection + "/index.md", index_source)
+        for card in cards:
+            target = collection + "/" + card.relative_to(root / directory).as_posix()
+            add("techjudge", target, card.relative_to(root))
     add("harness", "harness-engineering.md", Path("docs/harness-engineering.md"))
     for name, entries in sources.items():
         metadata = {"schema_version": 1, "hash_encoding": "UTF-8 with LF line endings", "files": entries}

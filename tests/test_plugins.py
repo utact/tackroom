@@ -85,7 +85,7 @@ class PluginDistribution(unittest.TestCase):
             self.assertEqual(path.read_text(encoding="utf-8"), "outdated\n")
 
     def test_source_changes_propagate_and_unlisted_cards_fail(self):
-        for card in ("stacks/api/locking.md", "algorithms/sequences/collatz.md"):
+        for card in ("stacks/api/locking.md", "algorithms/sequences/collatz.md", "design/styles/glass.md"):
             with self.subTest(card=card), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
                 shutil.copytree(ROOT / "docs", root / "docs")
@@ -105,7 +105,8 @@ class PluginDistribution(unittest.TestCase):
                     sync.build(root)
 
     def test_duplicate_index_entries_fail(self):
-        for collection, card in (("stacks", "api/locking.md"), ("algorithms", "sequences/collatz.md")):
+        for collection, card in (("stacks", "api/locking.md"), ("algorithms", "sequences/collatz.md"),
+                                 ("design", "styles/glass.md")):
             with self.subTest(collection=collection), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
                 shutil.copytree(ROOT / "docs", root / "docs")
