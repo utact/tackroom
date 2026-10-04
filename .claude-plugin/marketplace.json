@@ -10,13 +10,19 @@
       "name": "techjudge",
       "source": "./plugin/techjudge",
       "description": "현재 기능에 맞는 기술·알고리즘·데이터 표현과 학습 기회를 찾아 비교·적용·검증으로 연결한다.",
-      "author": {"name": "Yoo Seung-jun", "email": "dev.utact@gmail.com"}
+      "author": {
+        "name": "Yoo Seung-jun",
+        "email": "dev.utact@gmail.com"
+      }
     },
     {
       "name": "harness",
       "source": "./plugin/harness",
       "description": "프로젝트의 AI 작업 흐름을 진단하고 지침·도구·훅·피드백·평가를 개선한다.",
-      "author": {"name": "Yoo Seung-jun", "email": "dev.utact@gmail.com"}
+      "author": {
+        "name": "Yoo Seung-jun",
+        "email": "dev.utact@gmail.com"
+      }
     },
     {
       "name": "kowrite",

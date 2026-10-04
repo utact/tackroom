@@ -2,6 +2,9 @@
   "name": "harness",
   "version": "0.1.0",
   "description": "프로젝트의 AI 작업 흐름을 진단하고 지침·도구·훅·피드백·평가를 개선한다.",
-  "author": {"name": "Yoo Seung-jun", "email": "dev.utact@gmail.com"},
+  "author": {
+    "name": "Yoo Seung-jun",
+    "email": "dev.utact@gmail.com"
+  },
   "license": "MIT"
 }
